@@ -198,9 +198,19 @@ const config = {
             { text: 'Overview', link: '/infrastructure/overview', dev: true },
             { text: 'Asset Inventory', link: '/infrastructure/asset-inventory', dev: true },
             { text: 'Cloud Infrastructure', link: '/infrastructure/cloud', dev: true },
+            { text: 'Identity and Access Management', link: '/infrastructure/identity-and-access-management', dev: true },
+            { text: 'Operating System Security', link: '/infrastructure/operating-system-security', dev: true },
+            { text: 'Zero-Trust Principles', link: '/infrastructure/zero-trust-principles', dev: true },
+          ]
+        },
+        {
+          text: 'Network Security',
+          collapsed: true,
+          dev: true,
+          items: [
             { text: 'DDoS Protection', link: '/infrastructure/ddos-protection', dev: true },
             {
-              text: 'Domain & DNS Security',
+              text: 'DNS & Domain Registration',
               collapsed: false,
               items: [
                 { text: 'Overview', link: '/infrastructure/domain-and-dns-security/overview' },
@@ -210,10 +220,7 @@ const config = {
                 { text: 'Monitoring, Alerts, and GitOps', link: '/infrastructure/domain-and-dns-security/monitoring-and-alerting' },
               ]
             },
-            { text: 'Identity and Access Management', link: '/infrastructure/identity-and-access-management', dev: true },
             { text: 'Network Security', link: '/infrastructure/network-security', dev: true },
-            { text: 'Operating System Security', link: '/infrastructure/operating-system-security', dev: true },
-            { text: 'Zero-Trust Principles', link: '/infrastructure/zero-trust-principles', dev: true },
           ]
         },
         {

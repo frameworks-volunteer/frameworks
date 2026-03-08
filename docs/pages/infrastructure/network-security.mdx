@@ -20,23 +20,101 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Network security is a very wide subject, and the steps you take are significantly dependent on if you're managing your
-own network, if you're utilizing a cloud provider, or if you're using a service provider. With that said, there are some
-general best practices to consider:
+Network security is a wide subject, and the steps you take depend heavily on whether you're managing:
 
-## Best Practices
+- A physical office network
+- A cloud network (VPC/VNet)
+- A service-provider network (SaaS, managed hosting)
+- A fully remote team that mostly needs secure access to internal/admin surfaces
 
-1. Infrastructure should deny all incoming traffic by default. When opening ports, consideration should be made as to
-which ports and incoming IPs are needed. SSH, RDP, and Database ports should not be open to the entire Internet.
-2. Divide your network into segments to limit the impact of a potential breach.
-3. Implement firewalls to control and monitor incoming and outgoing network traffic based on predetermined security
-rules.
-4. Use IDPS to detect and prevent potential security breaches.
-5. Use VPNs to provide secure remote access to your network.
-6. Encrypt sensitive data in transit using secure protocols.
-7. Use ACLs to define and control which systems or users can access network resources.
-8. Conduct regular network security audits to identify and address vulnerabilities.
-9. Keep any potential network devices and software updated with the latest security patches.
+This page focuses on battle-tested, general practices and then goes deeper into **VPNs and secure tunnels**.
+
+## Baseline best practices
+
+1. **Deny by default**: infrastructure should deny all incoming traffic by default. When opening ports, be explicit about
+   which ports and which source IPs are needed. SSH/RDP/database ports should not be open to the entire Internet.
+2. **Segment networks** to limit blast radius (separate prod/staging/dev, split sensitive admin surfaces, isolate data
+   stores, separate build systems).
+3. **Firewalls and security groups**: enforce inbound + egress policy (yes: egress too), with change control and review.
+4. **IDS/IPS and alerting**: detect and prevent potential security breaches (cloud-native + host-based where needed).
+5. **Secure remote access**: use VPNs / secure tunnels / ZTNA solutions to access private resources.
+6. **Encrypt data in transit** using modern protocols (TLS 1.2+; prefer TLS 1.3). Avoid legacy ciphers/protocols.
+7. **Access control lists (ACLs)**: define and control which systems or users can access network resources.
+8. **Regular audits**: continuously review exposed services, open ports, rules drift, and unused access paths.
+9. **Patch network devices and software** (routers, VPN gateways, firewalls, load balancers) and remove dead configs.
+
+## VPNs and secure tunnels
+
+VPNs are one tool for secure access and privacy, but they're easy to misuse. The right question is usually:
+
+- "What am I trying to protect, from whom?"
+- "Do I need privacy from the local network / ISP, or do I need authenticated access to internal services?"
+
+### Common use-cases
+
+- **Remote access to internal/admin resources** (private dashboards, databases, CI runners, SSH bastions).
+- **Secure traffic on untrusted networks** (hotel Wi‑Fi, airports).
+- **Reducing exposure** by putting admin surfaces behind a private network and removing public ingress.
+
+### VPN is not a magic shield
+
+A VPN does **not** automatically:
+
+- Make you anonymous
+- Protect you from phishing/malware
+- Secure an already-compromised endpoint
+- Fix poor browser/extension hygiene
+
+Treat VPNs as *one layer* in a broader security model.
+
+### Choose the right approach: commercial VPN vs self-hosted vs mesh
+
+**Commercial VPN (privacy-focused):**
+
+- Helps primarily with privacy from local networks/ISPs and mitigating some forms of tracking.
+- Security depends on the provider's logging practices, jurisdiction, and operational maturity.
+
+**Self-hosted VPN gateway (org access-focused):**
+
+- Best when the goal is authenticated access to internal resources.
+- You control keys, config, and access policies.
+- You also own the responsibility: patching, monitoring, incident response.
+
+**Mesh / identity-based tunnels (often a better default for teams):**
+
+- Tools like **Tailscale** (WireGuard-based) or similar solutions can reduce operational burden.
+- Prefer per-user identity, device posture, and least-privilege ACLs over shared "VPN passwords".
+
+### Protocol recommendations
+
+- **Prefer WireGuard** when possible (simple design, strong defaults, modern cryptography).
+- Use OpenVPN only when you need compatibility.
+- Avoid legacy/weak protocols (e.g., PPTP).
+
+### Security checklist (high-signal)
+
+- **MFA/SSO for access**: if your solution supports SSO, enforce it.
+- **Per-user keys** (no shared credentials).
+- **Least-privilege ACLs**: users/devices should only reach the services they need.
+- **Device posture**: require disk encryption + up-to-date OS + screen lock for devices that can access prod.
+- **Kill switch** (where appropriate): prevent traffic from leaking outside the tunnel if it drops.
+- **DNS leak protection**: ensure DNS queries go through intended resolvers.
+- **IPv6 handling**: either support IPv6 correctly or disable it to avoid leaks.
+- **Split tunneling**: use deliberately. It can reduce latency but can also create bypass paths.
+- **Logging**: keep *security* logs (auth events, config changes) while minimizing unnecessary traffic logging.
+- **Monitoring**: alert on unusual logins, new device enrollments, and ACL changes.
+
+### Footguns and failure modes
+
+- Putting database/admin panels behind a VPN but leaving the same surfaces publicly reachable.
+- Long-lived, shared keys that are never rotated.
+- No offboarding process (ex-employees keep access).
+- Trusting a VPN to compensate for weak endpoint security.
+
+### Additional reading
+
+- Mattaereal: "VPNs" (and what most guides miss)
+  - https://blog.theredguild.org/p/aa56a97e-9b76-4aac-a3c3-9082af2fcdc3/
 
 ---
 
