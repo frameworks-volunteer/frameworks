@@ -1,1 +1,58 @@
-# Two-factor & hardware authentication
+---
+title: "Two-Factor & Hardware Authentication | Security Alliance"
+description: "Technical control guidance for phishing-resistant authentication with hardware security keys, layered MFA policy, and operational lifecycle management."
+tags:
+  - Security Specialist
+  - Operations & Strategy
+  - Engineer/Developer
+  - Devops
+  - SRE
+contributors:
+  - role: wrote
+    users: []
+  - role: reviewed
+    users: []
+  - role: fact-checked
+    users: []
+---
+
+import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../../components'
+
+<TagProvider>
+<TagFilter />
+
+# Two-Factor & Hardware Authentication
+
+<TagList tags={frontmatter.tags} />
+<AttributionList contributors={frontmatter.contributors} />
+
+Authentication controls should resist phishing, credential reuse, and account takeover attempts. In modern threat
+models, hardware-backed authentication (FIDO2/WebAuthn security keys and passkeys) should be the default for privileged
+or high-impact accounts.
+
+## Control objectives
+
+- Require MFA across critical systems and administrator workflows
+- Prefer phishing-resistant factors over OTP/SMS wherever possible
+- Maintain secure recovery and key lifecycle procedures
+- Monitor and alert on authentication changes (resets, new authenticator enrollment)
+
+## Implementation guidance
+
+1. Classify accounts by impact (standard vs privileged)
+2. Enforce stronger factors for privileged roles
+3. Require at least two enrolled authenticators for critical identities
+4. Remove weak fallback paths that bypass strong MFA
+5. Audit enrollment and recovery events regularly
+
+## YubiKeys and dedicated guidance
+
+For detailed setup, rollout, and incident response patterns using hardware security keys, see:
+
+- [YubiKeys for Operational Security](/opsec/mfa/yubikeys)
+- [Multi-Factor Authentication Overview](/opsec/mfa/overview)
+
+---
+
+</TagProvider>
+<ContributeFooter />

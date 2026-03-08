@@ -1,0 +1,151 @@
+---
+title: "YubiKeys for Operational Security | Security Alliance"
+description: "How to deploy YubiKeys for phishing-resistant authentication: setup, enrollment priority, backup keys, incident response, and Web3-specific operational guidance."
+tags:
+  - Security Specialist
+  - Operations & Strategy
+  - Engineer/Developer
+  - Devops
+  - SRE
+contributors:
+  - role: wrote
+    users: []
+  - role: reviewed
+    users: []
+  - role: fact-checked
+    users: []
+---
+
+import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../components'
+
+<TagProvider>
+<TagFilter />
+
+# YubiKeys for Operational Security
+
+<TagList tags={frontmatter.tags} />
+<AttributionList contributors={frontmatter.contributors} />
+
+YubiKeys are hardware authenticators that help protect accounts against phishing, credential theft, and many common
+account takeover paths.
+
+> 🔑 **Key Takeaway**: Treat YubiKeys as your **primary authentication factor** for critical accounts. Register at
+> least two keys (primary + backup), store backups separately, and pair hardware keys with recovery procedures that are
+> tested—not just documented.
+
+## Why YubiKeys matter in OpSec
+
+Compared to SMS codes and most app-based OTP workflows, hardware-backed authentication is significantly harder to phish
+or intercept.
+
+- **Phishing resistance**: FIDO2/WebAuthn authenticates the real site origin before releasing credentials.
+- **Reduced credential replay risk**: Stolen passwords are not enough when security keys are required.
+- **Operational reliability**: Keys are offline devices with predictable behavior and low attack surface.
+- **High-value role fit**: Strong option for admins, treasury operators, release engineers, and privileged maintainers.
+
+For an MFA baseline and threat-model context, start with the [MFA overview](/opsec/mfa/overview).
+
+## Which YubiKey capabilities to use
+
+YubiKeys support multiple applications. Prioritize them by security outcome:
+
+1. **FIDO2 / WebAuthn (preferred)**
+   - Best default for account login and passkeys
+   - Strong phishing resistance
+2. **FIDO U2F (legacy, still strong)**
+   - Useful for older services that have not fully moved to passkeys/WebAuthn
+3. **OATH-TOTP (fallback only)**
+   - Better than SMS, but not phishing resistant
+   - Use only where security keys are not supported
+4. **PIV / OpenPGP (specialized workflows)**
+   - Useful for smart-card auth, commit/email signing, and enterprise PKI use cases
+
+## Deployment standard (individuals and teams)
+
+### 1) Acquire and inventory keys
+
+- Buy from trusted channels (manufacturer or authorized reseller).
+- Record: model, serial, owner, issue date, and intended use.
+- Label keys clearly (for example: `Primary`, `Backup A`, `Emergency`).
+
+### 2) Configure key protections
+
+- Set a **FIDO2 PIN** on each key.
+- Enable stronger verification options when your key model and workflow support them.
+- Keep firmware and tooling current using official Yubico tools.
+
+### 3) Register keys in the right order
+
+Enroll security keys first on accounts that can reset other accounts:
+
+1. Primary email
+2. Identity provider / SSO (Google Workspace, Microsoft, Okta, etc.)
+3. Password manager
+4. Code hosting and CI/CD (GitHub, GitLab)
+5. Cloud and infrastructure admin consoles
+6. Financial or treasury systems
+
+### 4) Enroll multiple authenticators per account
+
+- Add at least **two hardware keys** to each critical account.
+- Verify sign-in using each key before considering setup complete.
+- Store backup keys in a separate physical location.
+
+### 5) Recovery and break-glass controls
+
+- Generate and securely store recovery codes.
+- Ensure recovery paths are protected with equal rigor (or stronger) than normal login paths.
+- Test account recovery periodically with a documented runbook.
+
+## Operational practices that prevent lockouts and compromise
+
+- Keep primary and backup keys physically separated.
+- Do not carry all keys together while traveling.
+- Avoid SMS fallback where possible; if unavoidable, harden telco account security.
+- Use role-separated keys for high-risk duties (example: separate personal vs admin keys).
+- Revoke and replace lost keys immediately.
+
+For travel-specific handling, see [Travel Security Guide](/opsec/travel/guide).
+
+## Common mistakes to avoid
+
+- Registering only one key (single point of failure)
+- Leaving weak fallback methods enabled (SMS, insecure recovery email)
+- Storing all keys in the same bag/location
+- Never testing backup key login paths
+- Treating setup as one-time work instead of a lifecycle process
+
+## Web3-specific guidance
+
+For Web3 organizations and contributors, YubiKeys are especially valuable for protecting high-impact control planes:
+
+- Organization admin accounts (GitHub org, CI/CD, cloud IAM)
+- Treasury and governance operations (where account takeover can lead to direct loss)
+- Security-sensitive communications and release workflows
+
+Combine YubiKey usage with:
+
+- Least-privilege permissions
+- Multi-party approvals for high-risk actions
+- Dedicated devices/profiles for privileged operations
+- Incident playbooks for compromised credentials or lost authenticators
+
+## Minimal implementation checklist
+
+- [ ] At least two YubiKeys per high-value identity
+- [ ] FIDO2 PIN set on all keys
+- [ ] Primary + backup enrollment verified on critical accounts
+- [ ] Recovery codes securely stored and tested
+- [ ] Lost/stolen key response documented and rehearsed
+
+## References
+
+- [Opsek YubiKeys cheatsheet](https://github.com/Opsek/Yubikeys-cheatsheet)
+- [Yubico device verification (genuine check)](https://www.yubico.com/genuine/)
+- [Yubico Authenticator](https://www.yubico.com/products/yubico-authenticator/)
+- [YubiKey Manager (`ykman`)](https://github.com/Yubico/yubikey-manager)
+
+---
+
+</TagProvider>
+<ContributeFooter />

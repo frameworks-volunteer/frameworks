@@ -1,8 +1,19 @@
 ---
 title: "Multi-Factor Authentication | Security Alliance"
+description: "Operational guidance for MFA: phishing-resistant authentication defaults, factor selection, fallback design, and rollout priorities for Web2 and Web3 teams."
 tags:
   - Security Specialist
   - Operations & Strategy
+  - Engineer/Developer
+  - Devops
+  - SRE
+contributors:
+  - role: wrote
+    users: []
+  - role: reviewed
+    users: []
+  - role: fact-checked
+    users: []
 ---
 
 import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../components'
@@ -15,7 +26,48 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Placeholder for Multi-Factor Authentication content
+Multi-factor authentication (MFA) is one of the highest-leverage controls in operational security. It reduces account
+compromise risk by requiring an additional factor beyond a password.
+
+> 🔑 **Key Takeaway**: Make phishing-resistant MFA your default for high-value accounts. Hardware security keys and
+> passkeys should be primary. OTP apps are fallback. SMS should be temporary and tightly scoped.
+
+## MFA factor quality (practical hierarchy)
+
+From strongest to weakest in most real-world threat models:
+
+1. **Hardware-backed FIDO2/WebAuthn (security keys/passkeys on external authenticators)**
+2. **Platform passkeys (device-bound passkeys with strong device security controls)**
+3. **Authenticator app OTP (TOTP/HOTP)**
+4. **SMS or voice OTP (legacy fallback only)**
+
+## Implementation priorities
+
+1. Protect accounts that can reset or cascade into others:
+   - Primary email
+   - SSO / identity provider
+   - Password manager
+   - Cloud, code hosting, and CI/CD administration
+2. Remove weak fallback paths where possible.
+3. Register at least two authenticators for each critical identity.
+4. Test recovery flows to avoid lockout during incidents.
+
+## Recommended baseline policy
+
+- Require MFA for all organization members.
+- Require phishing-resistant MFA for privileged roles.
+- Enforce periodic review of enrolled authenticators.
+- Maintain documented break-glass and recovery procedures.
+- Alert on MFA reset, device enrollment, and recovery method changes.
+
+## Related guidance
+
+- **Dedicated hardware key guide:** [YubiKeys for Operational Security](/opsec/mfa/yubikeys)
+- [Travel Security Guide](/opsec/travel/guide) for handling MFA devices while traveling
+- [Two-Factor & Hardware Auth](/opsec/control-domains/technical/two-factor-hardware-auth) in the technical controls
+  domain
+
+---
 
 </TagProvider>
 <ContributeFooter />
