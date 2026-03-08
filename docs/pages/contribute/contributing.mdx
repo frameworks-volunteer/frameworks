@@ -88,6 +88,51 @@ the [Stewards guide](/contribute/stewards) for details on responsibilities and h
 **⚠️ Please sign and verify all commits.** (If you have unsigned commits, follow the “Fixing Unsigned Commits” section
 below to update them)
 
+## Maintainer-approved S3 image uploads
+
+To keep the repository lightweight, maintainers can upload approved images to the static S3 bucket without committing
+binary files to git.
+
+### 1. Create an upload request manifest
+
+Add a JSON file under `.github/s3-image-uploads/` (you can copy
+`.github/s3-image-uploads/example.request.json`).
+
+```json
+{
+  "assets": [
+    {
+      "source_url": "https://raw.githubusercontent.com/github/explore/main/topics/actions/actions.png",
+      "target_path": "images/contribute/examples",
+      "name": "security-example"
+    }
+  ]
+}
+```
+
+Rules enforced by the workflow:
+
+- `source_url` must use **HTTPS** and come from an allowlisted host.
+- `target_path` must stay under the `images/` prefix.
+- File type must be a supported image format (`png`, `jpg`, `gif`, `webp`, `svg`, `avif`).
+- Uploaded filenames get a content hash suffix to avoid accidental overwrites.
+
+### 2. Run the workflow with maintainer approval
+
+Maintainers can run **Upload Images to S3** (`.github/workflows/s3-image-upload.yml`) using
+`workflow_dispatch`.
+
+- Start with `dry_run: true` to validate the request and preview generated URLs.
+- Re-run with `dry_run: false` once approved.
+- The job uses a protected GitHub Environment (`frameworks-static-image-upload`) so uploads only happen after explicit
+  maintainer approval.
+
+### 3. Use returned public URLs in docs
+
+The workflow writes uploaded object keys and public URLs in the job summary. Use those URLs in MDX pages, for example:
+
+`https://frameworks-static.s3.us-east-2.amazonaws.com/images/<section>/<asset>-<hash>.png`
+
 ## Development environment setup
 
 Choose the development approach that works best for you:

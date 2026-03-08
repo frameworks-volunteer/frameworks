@@ -1,0 +1,9 @@
+{
+  "assets": [
+    {
+      "source_url": "https://raw.githubusercontent.com/github/explore/main/topics/actions/actions.png",
+      "target_path": "images/contribute/examples",
+      "name": "security-example"
+    }
+  ]
+}

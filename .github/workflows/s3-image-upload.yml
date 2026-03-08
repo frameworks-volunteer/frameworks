@@ -1,0 +1,97 @@
+name: Upload Images to S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_file:
+        description: 'JSON request file under .github/s3-image-uploads/'
+        required: true
+        default: '.github/s3-image-uploads/example.request.json'
+      dry_run:
+        description: 'Validate and fetch only (no S3 upload)'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  upload-images:
+    name: Upload approved images
+    runs-on: ubuntu-latest
+    environment:
+      name: frameworks-static-image-upload
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate request file path
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REQUEST_FILE='${{ inputs.request_file }}'
+
+          if [[ "$REQUEST_FILE" == /* ]]; then
+            echo "::error::request_file must be a relative path"
+            exit 1
+          fi
+
+          if [[ "$REQUEST_FILE" == *".."* ]]; then
+            echo "::error::request_file cannot include parent-directory traversal"
+            exit 1
+          fi
+
+          if [[ ! "$REQUEST_FILE" =~ ^\.github/s3-image-uploads/[a-zA-Z0-9._/-]+\.json$ ]]; then
+            echo "::error::request_file must be under .github/s3-image-uploads/ and end in .json"
+            exit 1
+          fi
+
+          if [[ ! -f "$REQUEST_FILE" ]]; then
+            echo "::error::request file does not exist: $REQUEST_FILE"
+            exit 1
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ inputs.dry_run == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-2' }}
+
+      - name: Process and upload images
+        env:
+          REQUEST_FILE: ${{ inputs.request_file }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          S3_IMAGE_BUCKET: ${{ vars.S3_IMAGE_BUCKET }}
+          S3_IMAGE_PUBLIC_BASE_URL: ${{ vars.S3_IMAGE_PUBLIC_BASE_URL }}
+          S3_ALLOWED_SOURCE_HOSTS: ${{ vars.S3_ALLOWED_SOURCE_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${S3_IMAGE_BUCKET:-}" ]]; then
+            echo "::error::Repository variable S3_IMAGE_BUCKET must be configured"
+            exit 1
+          fi
+
+          BASE_URL="${S3_IMAGE_PUBLIC_BASE_URL:-https://frameworks-static.s3.us-east-2.amazonaws.com}"
+          ALLOWED_HOSTS="${S3_ALLOWED_SOURCE_HOSTS:-file.io,tmpfiles.org,file.kiwi,github.com,raw.githubusercontent.com,objects.githubusercontent.com}"
+
+          DRY_FLAG=''
+          if [[ "$DRY_RUN" == "true" ]]; then
+            DRY_FLAG='--dry-run'
+          fi
+
+          node .github/scripts/upload-s3-images.mjs \
+            --manifest "$REQUEST_FILE" \
+            --bucket "$S3_IMAGE_BUCKET" \
+            --public-base-url "$BASE_URL" \
+            --allowed-hosts "$ALLOWED_HOSTS" \
+            --max-bytes 15728640 \
+            $DRY_FLAG
