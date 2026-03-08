@@ -1,6 +1,6 @@
 ---
 title: "Monitoring Alert Thresholds | Security Alliance"
-description: "Define on-chain monitoring thresholds without excessive false positives. Establish baseline metrics, set multi-layered alert thresholds, and implement anomaly detection for unusual token activity."
+description: "Define practical on-chain monitoring thresholds with baseline methods and concrete trigger examples for treasury movement, privileged actions, token anomalies, and node health."
 tags:
   - Engineer/Developer
   - Security Specialist
@@ -16,42 +16,78 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Setting appropriate thresholds for on-chain monitoring is hard when taking into account you want to detect unusual
-activities, without generating excessive false positives. Here are some guidelines for defining and configuring
-thresholds.
+The hardest part of monitoring is not collecting data. It is choosing thresholds that catch real incidents early without
+creating constant alert fatigue.
 
-## Generic Guidelines
+## 1) Build a Baseline Before Choosing Numbers
 
-### Understand Normal Activity Patterns
+Start with 2-6 weeks of normal behavior data (longer if your protocol is cyclical):
 
-1. Establish baseline metrics for normal activities, such as average transaction volumes and typical token minting rates
-(if any).
-2. Use historical data to understand activity patterns and identify deviations from the norm.
+- Daily and hourly treasury transfer patterns
+- Typical admin/owner transaction frequency
+- Normal mint/burn and liquidation rates
+- Node sync lag, RPC latency, and error-rate distributions
 
-### Set Thresholds for Alerts
+If you skip baseline work, your thresholds will either be too noisy or too blind.
 
-1. Define thresholds for large fund transfers from project wallets, considering both absolute amounts and relative
-percentages.
-2. Set thresholds for token minting events, including the number of tokens minted and the frequency of minting.
-3. Establish thresholds for changes in contract ownership or significant modifications to contract code.
+## 2) Use Multi-Level Severity, Not One Hard Cutoff
 
-### Adjust Thresholds Over Time
+For each signal, define at least two levels:
 
-1. Implement adaptive thresholds that can adjust based on changing activity patterns and emerging threats.
-2. Periodically review and update thresholds to ensure they remain relevant and effective.
+- **Warning**: requires triage during business hours
+- **Critical**: requires immediate response/paging
 
-### Multi-Layered Thresholds
+This keeps low-confidence anomalies visible without burning out responders.
 
-1. Use primary thresholds for critical alerts and secondary thresholds for less urgent notifications.
-2. Define thresholds based on a combination of metrics to reduce false positives and improve accuracy.
+## 3) Concrete Threshold Examples (Starter Values)
 
-### Anomaly Detection
+These are examples to adapt, not universal constants.
 
-It is hard, if not impossible, to predict every type of alert one should setup for their project. As such, implementing
-an anomaly detection system can be of great value as it will monitor the project and its transactions in real time, and
-compare it to its previous behavior. If for example it is common that 4% of tokens change owner each day and there's a
-day with 20% of tokens changing owner in the past 10 minutes, then that could be detected as an anomaly cause for
-investigation.
+### Treasury movement
+
+- **Warning**: single transfer > 1% of treasury TVL
+- **Critical**: single transfer > 5% of treasury TVL
+- **Escalate faster if** destination is first-seen address or cross-chain bridge
+
+### Privileged operations
+
+- **Critical (always)**: `upgradeTo`, owner transfer, role-grant/revoke by unapproved signer
+- **Warning**: privileged call outside normal maintenance window
+- **Critical**: two or more privileged changes within 15 minutes
+
+### Token integrity
+
+- **Warning**: mint volume > 2x 7-day moving average
+- **Critical**: mint/burn event from unauthorized role
+- **Warning**: liquidation volume > 3 standard deviations over 30-day baseline
+
+### Node and RPC health
+
+- **Warning**: sync lag > 3 blocks for > 5 minutes
+- **Critical**: sync lag > 10 blocks for > 3 minutes
+- **Warning**: RPC error rate > 2% for 10 minutes
+- **Critical**: RPC error rate > 5% for 5 minutes
+
+## 4) Add Correlation Rules to Reduce Noise
+
+High signal comes from combining conditions, for example:
+
+- Large treasury outflow **and** signer set change in same 10-minute window
+- Contract upgrade event **and** sudden spike in failed user transactions
+- Bridge outflow anomaly **and** relayer/key-management incident
+
+Correlated alerts should have higher severity than any single trigger alone.
+
+## 5) Tune on a Weekly Cadence
+
+Each week:
+
+1. Review top noisy alerts by count and by responder feedback.
+2. Tighten or relax thresholds with explicit change notes.
+3. Add suppressions for known benign maintenance windows.
+4. Validate that critical scenarios still trigger in simulations/tabletops.
+
+Thresholds are living controls. Protocol growth, new chains, and new products should force threshold reviews.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "On-Chain Monitoring Guidelines | Security Alliance"
-description: "On-chain monitoring: track large fund transfers, token minting, and anomalies. Set up automated tools and real-time alerts via email, SMS, and messaging apps."
+description: "Build practical on-chain monitoring with clear objectives, free/open-source tool options, alert design patterns, and response workflows for blockchain teams."
 tags:
   - Engineer/Developer
   - Security Specialist
@@ -16,36 +16,133 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Effective on-chain monitoring is complex, and involves setting up systems and processes to continuously observe
-blockchain activities and detect any anomalies.
+On-chain monitoring should do more than emit noisy alerts. The goal is to detect meaningful risk quickly enough for
+humans (or automation) to respond before losses escalate.
 
-## Best Practices
+## 1. Objective
 
-### Define Monitoring Objectives
+Design a monitoring program that can:
 
-1. Determine the critical metrics to monitor, such as large fund transfers, token minting events, and changes in
-contract ownership.
+- Detect abnormal fund movement and privileged contract activity in near real time
+- Distinguish high-signal incidents from normal protocol operations
+- Trigger clear response playbooks and escalation paths
+- Improve over time with post-incident feedback
 
-### Implement Monitoring Tools
+## 2. Core Principles
 
-1. Use automated monitoring tools that can continuously track blockchain activities and generate alerts for anomalies.
-2. Supplement automated tools with periodic manual reviews.
+- **Coverage over perfection**: start with critical contracts/treasury paths, then expand.
+- **Actionable alerts**: every alert should map to an owner and a response action.
+- **Layered detection**: combine rule-based thresholds with anomaly detection and context.
+- **Defense in depth**: monitor both smart-contract events and supporting infra/keys/processes.
+- **Continuous tuning**: reduce false positives without blinding yourself to novel attacks.
 
-### Establish Alerting Mechanisms
+## 3. What to Monitor First
 
-1. Set up real-time alerts to notify relevant project members of any suspicious activities or threshold breaches.
-2. Use multiple channels for alerts, such as email, SMS, and messaging apps where available, to ensure timely response.
+Prioritize the assets and actions that can cause the highest blast radius:
 
-### Regular Reviews and Updates
+1. **Treasury and bridge wallets**
+   - large outflows
+   - transfers to first-time counterparties
+   - bursts of transactions in short windows
 
-1. Conduct regular reviews of your monitoring systems to ensure they are functioning correctly and covering all
-necessary metrics.
-2. Regularly update thresholds and alert configurations to reflect your current needs.
+2. **Privileged contract functions**
+   - ownership/admin role changes
+   - proxy upgrades and implementation changes
+   - pausing/unpausing and emergency switches
 
-### Incident Response
+3. **Token and protocol integrity signals**
+   - unexpected mint/burn events
+   - abrupt changes in collateralization or reserve ratios
+   - abnormal liquidation volume or oracle update patterns
 
-1. Develop and maintain an [incident response plan](/incident-management/overview) to handle alerts and anomalies as
-soon as possible.
+4. **Operational health**
+   - node sync lag and RPC error spikes
+   - relayer/keeper failures
+   - signer downtime or quorum degradation
+
+## 4. Tooling Examples (Free, Open-Source, and Freemium)
+
+### Free / Open-Source friendly
+
+- **Blockscout** (open-source explorer + APIs):
+  - transaction/event visibility
+  - useful for custom alert pipelines
+  - [GitHub Repository](https://github.com/blockscout/blockscout)
+
+- **Prometheus + Grafana** (open-source metrics stack):
+  - monitor node health, RPC latency, peer count, sync status
+  - visualize trends and trigger threshold-based alerts
+  - [Prometheus](https://github.com/prometheus/prometheus)
+  - [Grafana](https://github.com/grafana/grafana)
+
+- **Custom event watchers** (ethers/viem + WebSocket providers):
+  - exact control over which events/functions trigger alerts
+  - good for protocol-specific business logic
+
+### Freemium / Managed options (often used alongside OSS)
+
+- **Etherscan API** (free tier available):
+  - transaction history and address/activity queries
+  - [Documentation](https://docs.etherscan.io/)
+
+- **Tenderly** (managed observability and simulation platform):
+  - tracing, alerts, simulation-driven debugging
+  - [Website](https://tenderly.co/)
+
+- **OpenZeppelin Defender** (managed security automation):
+  - monitors, relayers, and action workflows
+  - [Product Page](https://www.openzeppelin.com/defender)
+
+Use a hybrid setup when possible: open-source data pipeline + managed alerting/automation for high-priority flows.
+
+## 5. Detection Strategies
+
+### Rule-Based Triggers
+
+Examples:
+
+- Transfer from treasury > X% of treasury TVL
+- Any `upgradeTo`, `setOwner`, or role-grant call from non-approved signer set
+- New destination address receives protocol funds for the first time
+
+### Statistical/Behavioral Triggers
+
+Examples:
+
+- Daily transfer volume exceeds rolling baseline by N standard deviations
+- Failed transaction ratio spikes above historical norms
+- Sharp change in active addresses interacting with privileged contracts
+
+### Context-Aware Correlation
+
+Examples:
+
+- Alert only if large transfer + admin role change occur in the same time window
+- Elevate severity if suspicious on-chain events coincide with infra incidents (RPC outage, signer failure)
+
+## 6. Alert Routing and Incident Response
+
+Tie each alert severity to a path:
+
+- **Critical**: immediate paging, predefined responders, 24/7 path
+- **High**: rapid triage within minutes, escalation if confirmed
+- **Medium/Low**: batched review and tuning
+
+Integrate with your [incident response plan](/incident-management/overview):
+
+1. Detect and confirm
+2. Contain (pause, rate-limit, revoke roles, disable compromised integrations)
+3. Recover and communicate
+4. Postmortem and monitoring rule updates
+
+## 7. Implementation Roadmap
+
+- **Week 1**: inventory contracts/wallets, define critical events, assign alert owners.
+- **Week 2**: deploy baseline watchers + node metrics dashboards.
+- **Week 3**: add severity tiers, escalation channels, and runbook links per alert.
+- **Week 4**: run tabletop exercises and tune thresholds using observed false positives.
+
+Monitoring is a living system. If your protocol changes and alerts do not, your detection quality will degrade fast.
 
 ---
 

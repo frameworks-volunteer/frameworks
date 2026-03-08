@@ -1,6 +1,6 @@
 ---
 title: "Monitoring | Security Alliance"
-description: "Monitoring Framework: Maintain blockchain security with on-chain monitoring. Detect anomalies and potential breaches in real-time with guidelines for alerts, thresholds, and tools."
+description: "Monitoring Framework: build practical on-chain monitoring with concrete tool stacks, alert ownership, and iterative tuning across wallets, contracts, and node infrastructure."
 tags:
   - Engineer/Developer
   - Security Specialist
@@ -16,10 +16,57 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Monitoring is a crucial aspect of maintaining the security and integrity of a blockchain project. Effective monitoring
-allows you to detect anomalies and potential security breaches in real-time, enabling prompt response and mitigation.
-This section focuses on monitoring the on-chain security of a project, including guidelines for setting up monitoring
-systems, defining thresholds for alerts, and utilizing existing on-chain monitoring tools.
+Monitoring is how security controls stay alive after deployment. Audits and tests reduce risk at release time, but only
+continuous monitoring tells you when assumptions break in production.
+
+A practical monitoring program should cover:
+
+- **On-chain behavior** (wallet flows, contract events, upgrades, permissions)
+- **Operational health** (node sync, RPC errors, relayer/keeper availability)
+- **Escalation paths** (who gets paged, who can act, what gets communicated)
+
+## Starter Monitoring Stacks (with concrete examples)
+
+Choose a model that matches your team size and response maturity.
+
+### 1) OSS-first stack (cost-sensitive teams)
+
+- **Data + exploration**: Blockscout
+- **Metrics + dashboards**: Prometheus + Grafana
+- **Event logic**: custom watchers with `ethers` or `viem`
+- **Notifications**: Alertmanager → Slack/Telegram/PagerDuty
+
+Good when you need maximum control and can operate infrastructure internally.
+
+### 2) Hybrid stack (common for growing protocols)
+
+- **Base observability**: Prometheus/Grafana + self-hosted logs
+- **Managed intelligence**: Tenderly alerts and traces
+- **Operational automations**: OpenZeppelin Defender monitors/actions
+- **Public chain context**: Etherscan API for enrichment
+
+Good when you want OSS ownership plus faster incident workflows for critical paths.
+
+### 3) Managed-first stack (small teams with high risk exposure)
+
+- **Managed alerting + tracing**: Tenderly / Defender
+- **Minimal self-hosted telemetry**: core node health + uptime checks
+- **Escalation**: PagerDuty/Opsgenie + incident channel bot
+
+Good when response speed is more important than custom infrastructure depth.
+
+## How This Section Is Organized
+
+- [Guidelines](/monitoring/guidelines): objectives, detection design, tooling, and incident workflows
+- [Thresholds](/monitoring/thresholds): how to set practical trigger values without drowning in false positives
+
+## First 30 Days Checklist
+
+1. Inventory critical wallets/contracts and classify by blast radius.
+2. Add baseline alerts for treasury outflows, admin role changes, and upgrade events.
+3. Deploy node/RPC health dashboards and sync-lag alarms.
+4. Route critical alerts to 24/7 responders with documented runbooks.
+5. Run one tabletop incident and tune noisy or missing alerts.
 
 ---
 
