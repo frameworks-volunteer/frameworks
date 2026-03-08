@@ -1,6 +1,6 @@
 ---
 title: "Cloud Infrastructure | Security Alliance"
-description: "Secure cloud infrastructure with RBAC, MFA, data encryption, VPCs, and CloudTrail logging. AWS, Azure, and GCP hardening guides plus open-source tools like CloudSploit and Prowler."
+description: "Secure cloud infrastructure with concrete AWS, Azure, and GCP hardening patterns, plus practical Ethereum node deployment examples and monitoring tooling."
 tags:
   - Engineer/Developer
   - Security Specialist
@@ -20,39 +20,117 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Securing your cloud infrastructure could be considered as important as securing your decentralized application, as a lot
-of users will be interacting with your dapp through the cloud provider. Some best practices to consider are:
+For many teams, your cloud footprint is effectively part of your protocol perimeter. Even if contracts are secure,
+compromised CI, RPC, DNS, frontend hosting, or cloud IAM can still lead to major losses.
 
-1. Implement strict access controls and identity management to ensure that only authorized individuals can interact with
-cloud resources. Use role-based access control (RBAC) and multi-factor authentication (MFA).
-2. Encrypt data both in transit and at rest. Use managed encryption keys or bring your own keys (BYOK) for enhanced
-security.
-3. Configure virtual private clouds (VPCs), implement firewalls, and monitor network traffic to protect against
-unauthorized access and threats.
-4. Set up comprehensive logging, monitoring, and threat detection systems to identify and respond to security incidents
-in real-time. Use services like AWS CloudTrail, Azure Monitor, and Google Cloud Logging.
-5. Implement high availability, data backup, and disaster recovery plans to protect against service disruptions. Use
-automated fail-over and replication strategies.
-6. Ensure compliance with regulatory requirements (e.g., GDPR, MiCA).
+## Baseline Security Controls
 
-## Cloud Provider Hardening Guides
+At minimum, implement:
 
-All cloud providers have hardening guides that provide step-by-step instructions and best practices for securing cloud
-infrastructure:
+1. **Strong identity controls**: SSO + MFA for all operators, role-based access control (RBAC), and just-in-time access
+   for privileged actions.
+2. **Data protection**: Encrypt data in transit and at rest. Prefer managed KMS/HSM backed keys and strict key rotation
+   procedures.
+3. **Network segmentation**: Keep critical services in private subnets/VNETs, restrict ingress to approved sources, and
+   avoid public management interfaces.
+4. **Tamper-evident logging**: Enable cloud audit logs for all regions/accounts/projects and centralize retention.
+5. **Detection + alerting**: Configure real-time alerts for IAM changes, key usage anomalies, public bucket exposure,
+   and suspicious API activity.
+6. **Resilience planning**: Multi-zone architecture, regular backups, tested restore plans, and clear RTO/RPO targets.
+7. **Compliance posture**: Map controls to your obligations (e.g., GDPR, SOC2, MiCA requirements where applicable).
 
-- **AWS**: [Security, Identity, and Compliance](https://aws.amazon.com/architecture/security-identity-compliance/)
-- **Azure**:
-[Best Practices and Patterns](https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns)
-- **GCP**: [Security Best Practices](https://cloud.google.com/security/best-practices)
+## Provider-Specific Hardening Starters
 
-## Open Source Tools
+### AWS
 
-To aid with vulnerability detection and compliance, you could consider using the following open-source tools:
+- Use **AWS Organizations** with separate accounts for production, staging, security, and shared services.
+- Enforce global guardrails through **Service Control Policies (SCPs)**.
+- Use **AWS IAM Identity Center** and avoid long-lived IAM users whenever possible.
+- Keep workloads in private subnets and gate ingress with **Security Groups + NACLs + WAF** where appropriate.
+- Enable **CloudTrail**, **Config**, **GuardDuty**, and **Security Hub** organization-wide.
+- Protect sensitive workloads with **KMS**, and monitor key usage via CloudWatch/EventBridge alerts.
 
-- **CloudSploit**: [CloudSploit](https://github.com/aquasecurity/cloudsploit)
-- **Prowler**: [Prowler](https://github.com/prowler-cloud/prowler)
-- **S3Scanner (AWS)**: [S3Scanner](https://github.com/sa7mon/S3Scanner)
-- **Zeus (AWS)**: [Zeus](https://github.com/DenizParlak/Zeus)
+### Azure
+
+- Structure access with **Management Groups → Subscriptions → Resource Groups**.
+- Use **Microsoft Entra ID** with conditional access and **Privileged Identity Management (PIM)**.
+- Isolate services using **VNets**, **NSGs**, **Private Endpoints**, and deny broad public ingress by default.
+- Enable **Defender for Cloud**, **Azure Monitor**, and **Activity Logs** for security telemetry.
+- Apply **Azure Policy** to enforce approved regions, SKUs, and encryption requirements.
+
+### GCP
+
+- Use **Organization → Folders → Projects** to isolate environments and blast radius.
+- Apply least privilege with IAM and avoid static service-account keys (prefer workload identity federation).
+- Protect sensitive APIs/services with **VPC Service Controls** and private networking.
+- Enable **Cloud Audit Logs**, **Security Command Center**, and centralized alerting.
+- Use **Cloud Armor** for internet-exposed workloads and explicit ingress restrictions.
+
+## Ethereum Node Deployment Examples (AWS, Azure, GCP)
+
+A secure production pattern for ETH nodes is usually:
+
+- Execution client + consensus client on hardened hosts
+- Private networking by default
+- Restricted RPC exposure (allowlist, auth, rate limits)
+- Full metrics/logging and alerting
+- Automated backup + tested recovery
+
+### AWS example pattern
+
+- **Compute**: EC2 (or EKS for containerized nodes)
+- **Storage**: GP3/EBS volumes sized for execution + consensus data growth
+- **Network**: private subnets, tightly scoped security groups
+- **Access**: SSM Session Manager instead of open SSH
+- **Observability**: CloudWatch + Prometheus/Grafana
+
+Practical checks:
+
+- RPC (8545/8546) not open to the public internet
+- P2P ports are only as open as required
+- Systemd hardening for node processes
+- Snapshot/backup cadence documented and tested
+
+### Azure example pattern
+
+- **Compute**: Azure VM Scale Set or AKS
+- **Storage**: Managed Disks sized for chain growth and IO requirements
+- **Network**: private VNET, NSG rules scoped to known peers/clients
+- **Access**: Azure Bastion / JIT VM access via Defender
+- **Observability**: Azure Monitor + Prometheus/Grafana
+
+Practical checks:
+
+- Management ports restricted to approved admin paths only
+- Defender alerts configured for unusual process/network behavior
+- Key material (JWT secret, API creds) in Key Vault
+
+### GCP example pattern
+
+- **Compute**: Compute Engine managed instance groups or GKE
+- **Storage**: Persistent Disks with tuned performance profiles
+- **Network**: private VPC, minimal firewall exposure
+- **Access**: IAP + OS Login + MFA for operators
+- **Observability**: Cloud Logging/Monitoring + Prometheus/Grafana
+
+Practical checks:
+
+- No unauthenticated public RPC endpoints
+- Alerting for sync lag, peer drops, and disk pressure
+- Service account permissions are minimal and reviewed periodically
+
+## Tooling You Can Start With
+
+- **Prowler**: multi-cloud security posture checks ([GitHub](https://github.com/prowler-cloud/prowler))
+- **CloudSploit**: cloud misconfiguration scanning ([GitHub](https://github.com/aquasecurity/cloudsploit))
+- **ScoutSuite**: multi-cloud security auditing ([GitHub](https://github.com/nccgroup/ScoutSuite))
+- **Falco**: runtime threat detection for cloud workloads ([GitHub](https://github.com/falcosecurity/falco))
+
+## References
+
+- AWS: [Security, Identity, and Compliance](https://aws.amazon.com/architecture/security-identity-compliance/)
+- Azure: [Security best practices and patterns](https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns)
+- GCP: [Google Cloud security best practices](https://cloud.google.com/security/best-practices)
 
 ---
 

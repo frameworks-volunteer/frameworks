@@ -35,6 +35,36 @@ These registrars are designed for high-value domains and have security measures 
 - **AWS Route53**: IAM policy integration, CloudTrail logging, uses Amazon Registrar for major TLDs (but check TLD support)
 - **Cloudflare Registrar**: No markup pricing, automatic DNSSEC, built-in DDoS protection, requires Cloudflare services
 
+### Registrar Examples: How Teams Commonly Deploy
+
+These are practical examples you can adapt based on your constraints:
+
+1. **MarkMonitor + Cloudflare DNS**
+   - Registrar: MarkMonitor (high-assurance transfer/ownership controls)
+   - DNS hosting: Cloudflare
+   - Typical setup: registry lock + strict approval workflow at registrar, DNSSEC enabled in Cloudflare, DS at registrar,
+     and DNS change alerts in both systems
+
+2. **Route 53 Registrar + Route 53 Hosted Zone**
+   - Registrar: Amazon Registrar (via Route 53)
+   - DNS hosting: Route 53
+   - Typical setup: IAM least privilege, MFA-required admin roles, CloudTrail logging for domain and zone changes,
+     DNSSEC signing where available and DS tracking at registrar
+
+3. **Cloudflare Registrar + Cloudflare DNS**
+   - Registrar + DNS in one platform
+   - Typical setup: hardware-key protected admin access, zone lockdown procedures, DNSSEC enabled by default, and
+     change alerts through Cloudflare notifications/webhooks
+
+**Design choice**: Splitting registrar and DNS providers can reduce single-vendor risk, but it also increases operational
+complexity. If you split, document exactly who can change registrar settings versus DNS records.
+
+Useful references:
+
+- Cloudflare DNS docs: [Documentation](https://developers.cloudflare.com/dns/)
+- MarkMonitor: [Official site](https://www.markmonitor.com/)
+- AWS Route 53: [Product page](https://aws.amazon.com/route53/)
+
 ### Consumer Registrars to Avoid for Critical Domains
 
 These registrars are designed for personal use and lack the security measures needed for Web3 projects:
@@ -78,6 +108,18 @@ functional. EPP locks protect registry-level changes, not zone-level DNS record 
 
 **Setup**: Contact enterprise registrars for registry-operator level locks. This typically requires additional fees and
 documentation but provides the highest level of security.
+
+### Registry Lock Implementation Examples
+
+- **MarkMonitor**: Request managed registry lock with out-of-band approval and named approvers. Validate the callback
+  process with your security team before production rollout.
+- **Route 53 Registrar**: Confirm transfer lock settings and registrar-level protections for each critical domain.
+  Pair with strict IAM boundaries and CloudTrail alerting for domain-related API calls.
+- **Cloudflare Registrar**: Confirm transfer lock posture and registrar-level controls, then separately verify zone-level
+  permissions and audit logs in Cloudflare DNS.
+
+For all providers, run a quarterly control test: attempt a controlled nameserver/contact change and verify that lock and
+approval workflows behave exactly as expected.
 
 ## Multi-Factor Authentication
 

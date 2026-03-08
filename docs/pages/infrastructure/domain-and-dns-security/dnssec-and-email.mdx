@@ -84,6 +84,34 @@ protocols and features such as SMTP DANE, SSHFP, and CAA.
    - Monitor DNSSEC validation status regularly
    - Watch for DNSKEY rollovers and ensure they complete successfully
 
+### DNSSEC Provider Examples
+
+#### Cloudflare DNS + External Registrar
+
+1. Enable DNSSEC in Cloudflare DNS dashboard for the zone.
+2. Copy DS values (key tag, algorithm, digest type, digest).
+3. Paste DS into your registrar's DNSSEC/DS management page.
+4. Validate with `dig +dnssec yourdomain.tld A` and DNSViz.
+
+Cloudflare docs: [DNSSEC documentation](https://developers.cloudflare.com/dns/dnssec/)
+
+#### AWS Route 53 Hosted Zone + Registrar DS
+
+1. Enable DNSSEC signing for the Route 53 hosted zone.
+2. Retrieve DS material from Route 53.
+3. Publish DS at your registrar.
+4. Validate DNSSEC chain and alert on DS/signing changes.
+
+Route 53 docs: [DNSSEC configuration guide](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec.html)
+
+#### Enterprise Registrar (e.g., MarkMonitor) + Managed DNS
+
+1. Confirm who owns DNS signing responsibility (registrar-managed vs external DNS provider).
+2. If external DNS signs the zone, ensure DS publication at the registrar follows a dual-approval workflow.
+3. Document rollover runbooks (KSK/ZSK change windows, emergency rollback, communication plan).
+
+MarkMonitor reference: [Official site](https://www.markmonitor.com/)
+
 **Security notes**:
 
 - DNSSEC authenticates data; it does **not** encrypt queries. Use DoT (DNS over TLS) or DoH (DNS over HTTPS) for
