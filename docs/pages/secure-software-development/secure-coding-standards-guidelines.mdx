@@ -1,6 +1,6 @@
 ---
-title: "Secure Coding Standards & Guidelines | SEAL"
-description: "Secure coding standards: input validation with whitelisting, output encoding, strong authentication, error handling. Follow least privilege, use vetted libraries, encrypt sensitive data."
+title: "Secure Coding Standards & Guidelines with Practical Examples | SEAL"
+description: "Secure coding standards with practical examples for input validation, output encoding, authentication, authorization, error handling, and secure dependency practices."
 tags:
   - Engineer/Developer
   - Security Specialist
@@ -16,49 +16,191 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Using secure coding standards and guidelines increases the likelihood of you being resilient to security threats. Having
-these type of standards can help developers avoid common vulnerabilities, and help ensure that security is considered
-at every stage of development.
+Secure coding standards reduce avoidable vulnerabilities and make security expectations explicit across teams. The goal is
+not just to "write secure code" once, but to build repeatable engineering habits that prevent common mistakes in every
+release.
 
-## Secure Coding Standards
+## Core Secure Coding Standards
 
-1. **Input Validation**
-   - Validate all inputs to ensure they conform to expected formats and ranges.
-   - Use whitelisting (allowing only known good inputs) rather than blacklisting.
+### 1) Input Validation
 
-2. **Output Encoding**
-   - Encode output data.
-   - Use libraries and frameworks that provide built-in encoding functions.
+Validate all untrusted input at system boundaries (API handlers, job consumers, file parsers). Favor allowlists and
+explicit schemas over ad-hoc checks.
 
-3. **Authentication and Authorization**
-   - Implement strong authentication mechanisms to verify user identities.
-   - Ensure proper authorization checks are in place to control access to resources based on user roles.
+**Practical example (TypeScript + API):**
 
-4. **Error Handling**
-   - Handle errors gracefully without revealing sensitive information.
-   - Log errors securely and provide generic error messages to users.
+```ts
+import { z } from 'zod'
 
-## Guidelines for Secure Coding
+const CreateUserSchema = z.object({
+  email: z.string().email().max(254),
+  age: z.number().int().min(13).max(120),
+  role: z.enum(['viewer', 'editor'])
+})
 
-1. **Use Secure Libraries and Frameworks**
-   - Use libraries and frameworks that have been vetted for security and are regularly updated.
-   - Avoid using deprecated or unmaintained libraries.
+export async function createUser(req, res) {
+  const parsed = CreateUserSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Invalid request payload' })
+  }
 
-2. **Follow Principle of Least Privilege**
-   - Grant the minimum level of access necessary for code to function.
-   - Avoid running code high privileges.
+  // Use parameterized queries/ORM, never string concatenation
+  await db.user.create({ data: parsed.data })
+  return res.status(201).json({ ok: true })
+}
+```
 
-3. **Secure Data Storage**
-   - Encrypt sensitive data both at rest and in transit.
-   - Use secure storage mechanisms for credentials and secrets.
+**Implementation notes:**
 
-4. **Regular Code Reviews**
-   - Conduct regular code reviews to identify and fix security vulnerabilities.
-   - Use automated tools to complement manual code reviews.
+- Reject malformed data early with 4xx responses.
+- Normalize canonical formats where needed (e.g., lowercase email).
+- Use parameterized queries to prevent SQL injection.
 
-5. **Continuous Security Training**
-   - Provide ongoing security training for developers to keep them informed about the latest threats and best practices.
-   - Encourage participation in security communities and events.
+### 2) Output Encoding (Context-Aware)
+
+Encode or escape output based on where it is rendered (HTML, URL, JS string, CSS). Incorrect context handling can lead
+to XSS even when validation exists.
+
+**Practical example:**
+
+- Prefer frameworks that auto-escape by default.
+- Avoid unsafe rendering APIs (`dangerouslySetInnerHTML`, raw template interpolation) unless content is sanitized with a
+  vetted sanitizer.
+
+```tsx
+// Safer default in React: rendered as text, escaped by default
+<div>{userSuppliedComment}</div>
+
+// Risky pattern: only use with strong sanitization controls
+<div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+```
+
+### 3) Authentication and Authorization
+
+Treat authentication (who are you?) and authorization (what can you do?) as separate controls. Enforce server-side
+authorization for every sensitive action.
+
+**Practical example (object-level authorization):**
+
+```ts
+export async function updateInvoice(req, res) {
+  const user = req.authnUser // established by auth middleware
+  const invoice = await db.invoice.findUnique({ where: { id: req.params.id } })
+
+  if (!invoice) return res.status(404).json({ error: 'Not found' })
+  if (invoice.ownerId !== user.id && !user.roles.includes('admin')) {
+    return res.status(403).json({ error: 'Forbidden' })
+  }
+
+  await db.invoice.update({ where: { id: invoice.id }, data: req.body })
+  return res.status(200).json({ ok: true })
+}
+```
+
+**Implementation notes:**
+
+- Deny by default; grant minimal permissions.
+- Re-check authorization in backend services even if the frontend hides actions.
+- Protect session/token handling and enforce MFA for privileged access.
+
+### 4) Error Handling and Secure Logging
+
+Errors should help operators debug without leaking secrets, stack internals, tokens, or PII to end users.
+
+**Practical example:**
+
+```ts
+try {
+  await paymentService.charge(cardToken, amount)
+  return res.status(200).json({ ok: true })
+} catch (err) {
+  logger.error({ reqId: req.id, errType: err.name }, 'Payment failed')
+  return res.status(502).json({ error: 'Unable to process payment right now' })
+}
+```
+
+**Implementation notes:**
+
+- Return generic user-facing errors.
+- Log structured metadata with correlation/request IDs.
+- Redact secrets in logs and telemetry.
+
+## Secure Coding Implementation Guidelines
+
+### 1) Use Vetted Libraries and Keep Dependencies Healthy
+
+- Prefer actively maintained libraries with clear security posture.
+- Pin or constrain versions and apply updates regularly.
+- Automate dependency scanning in CI (SCA + advisory feeds).
+
+**Practical workflow:**
+
+- Weekly dependency update window.
+- CI fails on critical vulnerabilities unless a documented exception exists.
+- Track exceptions with owner + expiry date.
+
+### 2) Follow Least Privilege by Default
+
+- Services, jobs, and CI pipelines should run with the minimum permissions required.
+- Avoid broad database, cloud IAM, and filesystem permissions.
+
+**Practical workflow:**
+
+- Separate read-only and write-capable service accounts.
+- Remove default admin permissions from non-admin roles.
+- Review privilege grants during release and incident retrospectives.
+
+### 3) Protect Secrets and Sensitive Data
+
+- Never hardcode secrets in source code.
+- Use dedicated secret managers and short-lived credentials where possible.
+- Encrypt sensitive data in transit and at rest.
+
+**Practical workflow:**
+
+- Secret scanning in pre-commit and CI.
+- Key rotation policy with automated reminders.
+- Data classification to distinguish public, internal, confidential, and regulated data.
+
+### 4) Make Security Reviews Part of Definition of Done
+
+- Use security checklists in code review templates.
+- Pair manual review with SAST/DAST and test coverage for abuse cases.
+
+**Practical workflow:**
+
+- Pull requests require: threat notes, test evidence, and no unresolved high-severity findings.
+- Security-relevant changes (auth, crypto, deserialization, file upload) require an explicit reviewer.
+
+### 5) Invest in Continuous Security Training
+
+- Provide regular secure coding refreshers tied to real incidents and near-misses.
+- Build a security champion model per squad/team.
+
+**Practical workflow:**
+
+- Monthly micro-training using one vulnerability class (e.g., IDOR, SSRF).
+- Post-incident learning notes mapped back to coding standards.
+
+## Lightweight Secure Coding Checklist
+
+Use this checklist before merging security-relevant code:
+
+- [ ] Input schema validation exists for all untrusted entry points.
+- [ ] Authorization checks are server-side and deny by default.
+- [ ] Output encoding/sanitization matches rendering context.
+- [ ] Errors do not leak secrets or sensitive internals.
+- [ ] Secrets are not in code, logs, or client-side artifacts.
+- [ ] Dependencies were scanned and critical findings addressed.
+
+## References
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP ASVS (Application Security Verification Standard)](https://owasp.org/www-project-application-security-verification-standard/)
+- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
+- [CWE Top 25 Most Dangerous Software Weaknesses](https://cwe.mitre.org/top25/)
+- [NIST SP 800-218: Secure Software Development Framework (SSDF)](https://csrc.nist.gov/pubs/sp/800/218/final)
+- [CERT Secure Coding Standards](https://wiki.sei.cmu.edu/confluence/display/seccode)
 
 ---
 
