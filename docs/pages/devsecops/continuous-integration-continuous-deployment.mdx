@@ -18,17 +18,61 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Continuous Integration and Continuous Deployment are there to ensure good code quality and create rapid and secure
-deployments. Some best practices are:
+CI/CD systems are part of your production attack surface. Secure pipelines should be reproducible, auditable, and
+least-privileged by default.
 
-1. Ensure every PR undergoes CI testing (e.g., GitHub Actions) that must pass before merging. CI tests should at least
-  include unit tests, integration tests, and checks for known vulnerabilities in dependencies.
-2. The CI/CD pipeline should check for misconfigurations and leaked credentials.
-3. Produce deterministic builds with a strict set of dependencies and/or a build container that can reliably produce the
-  same results on different machines.
-4. Integrate security scanning tools to detect vulnerabilities in code and dependencies during the CI process.
-5. Use isolated environments for building and testing to prevent contamination between different stages of the pipeline.
-6. Implement strict access controls for CI/CD pipelines to limit who can modify the pipeline configurations.
+## Recommended controls
+
+1. Require CI checks on every pull request before merge.
+2. Pin third-party GitHub Actions to full commit SHAs.
+3. Use least-privilege `permissions` in workflow files.
+4. Prefer short-lived cloud credentials via OIDC over long-lived static secrets.
+5. Build in isolated runners/environments and avoid sharing mutable state between jobs.
+6. Scan dependencies, IaC, and secrets as part of CI.
+
+## Practical examples
+
+### Example 1: Lock down workflow token permissions
+
+```yaml
+permissions:
+  contents: read
+```
+
+Then elevate permissions only for jobs that truly need write access.
+
+### Example 2: Pin all third-party actions
+
+```yaml
+- uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+```
+
+Pinning prevents silent supply-chain changes from mutable tags.
+
+### Example 3: Replace cloud access keys with OIDC
+
+In AWS, configure a role trusted by GitHub OIDC and assume it at runtime:
+
+```yaml
+- uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: ${{ secrets.AWS_IAM_ROLE_TO_ASSUME }}
+    aws-region: us-east-2
+```
+
+This removes persistent keys from repository secrets.
+
+### Example 4: Add policy checks before deploy
+
+Run tools like dependency review, SAST, secret scanning, and IaC checks in CI gates before deployment jobs execute.
+
+## References
+
+- [GitHub: Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+- [GitHub: Automatic token authentication and permissions](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
+- [OpenSSF Scorecard: Pinned Dependencies](https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies)
+- [SLSA framework](https://slsa.dev/)
+- [NIST SSDF (PW.6, RV.1)](https://csrc.nist.gov/Projects/ssdf)
 
 ---
 

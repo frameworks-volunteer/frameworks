@@ -18,13 +18,42 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Security testing is a crucial part of the DevSecOps process, as it helps identify vulnerabilities early on so that they
-can be taken care of before they become an issue in production.
+Security testing in DevSecOps should combine multiple methods across the delivery lifecycle. No single scanner catches
+every class of issue.
 
-1. Integrate SAST tools into the CI/CD pipeline to analyze source code for vulnerabilities.
-2. Use DAST tools to test running applications for security issues.
-3. Combine SAST and DAST approaches with IAST tools for comprehensive security testing.
-4. Implement fuzz testing to discover security vulnerabilities by inputting random data.
+## Recommended controls
+
+1. Run SAST on every pull request for early developer feedback.
+2. Run DAST against deployed preview/staging environments.
+3. Add dependency and container-image vulnerability scanning.
+4. Use fuzz testing for parsers, protocol handling, and custom business logic.
+5. Track findings to remediation SLAs by severity.
+
+## Practical examples
+
+### Example 1: PR-level SAST gate
+
+Run static analysis in CI and block merges on high-confidence findings in critical paths.
+
+### Example 2: DAST against preview environments
+
+For web apps, execute authenticated ZAP/Burp-style scans against preview deployments created per pull request.
+
+### Example 3: Targeted fuzzing for high-risk components
+
+Use fuzzing harnesses for ABI parsers, transaction decoders, serialization logic, and signing flows.
+
+### Example 4: Risk-based triage workflow
+
+Route findings to owners by subsystem and enforce response windows (for example: critical within 24h, high within 7d).
+
+## References
+
+- [OWASP: Static Application Security Testing (SAST)](https://owasp.org/www-community/Source_Code_Analysis_Tools)
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [CodeQL documentation](https://codeql.github.com/docs/)
+- [Semgrep documentation](https://semgrep.dev/docs/)
+- [Google: OSS-Fuzz](https://google.github.io/oss-fuzz/)
 
 ---
 

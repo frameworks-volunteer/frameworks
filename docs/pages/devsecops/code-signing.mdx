@@ -17,16 +17,51 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Code signing ensures that the code has not been tampered with, and verifies the identity of the developer. Here are some
-best practices that could be followed:
+Code signing helps prove authorship and integrity. It does not replace peer review, but it gives maintainers a strong
+signal that code and release artifacts came from trusted contributors and trusted automation.
 
-1. Ensure all Pull Requests (PRs) are signed with the user’s GPG key.
-2. Every PR must be reviewed by another core team member before being merged into the stable/main/master branch, with
-  github settings set to reflect this.
-3. Require Multi-Factor Authentication (MFA) for all users where applicable and available. Encourage the use of hardware
-  MFA such as Yubikeys.
-4. Rotate GPG keys regularly to mitigate the risk of key compromise.
-5. Maintain clear documentation on the code signing procedures for your team members.
+## Recommended controls
+
+1. Require signed commits for all contributors (GPG, SSH, or S/MIME) and enforce it on protected branches.
+2. Require at least one independent reviewer before merge.
+3. Require MFA for all maintainers and prefer phishing-resistant hardware keys.
+4. Rotate signing keys on a schedule and immediately after staff changes.
+5. Keep a written key management playbook (creation, backup, revocation, rotation, offboarding).
+
+## Practical examples
+
+### Example 1: Enforce signed commits on `develop` and `main`
+
+- In **Repository Settings → Branches/Rulesets**, require signed commits and pull-request reviews.
+- Deny direct pushes to protected branches so unsigned emergency pushes are not possible.
+
+### Example 2: Protect release artifacts with Sigstore
+
+For binaries, container images, or build outputs, sign artifacts in CI and verify before publish.
+
+```bash
+cosign sign --yes ghcr.io/org/app:1.2.3
+cosign verify ghcr.io/org/app:1.2.3 --certificate-identity-regexp 'https://github.com/org/repo/.*'
+```
+
+This provides provenance beyond commit-level signatures.
+
+### Example 3: Fast key compromise response
+
+If a maintainer key is suspected compromised:
+
+1. Revoke the key immediately.
+2. Remove the key from GitHub.
+3. Rotate credentials and tokens tied to the same device/account.
+4. Re-sign subsequent release tags/artifacts with a new trusted key.
+
+## References
+
+- [GitHub: About commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+- [GitHub: Available commit signature verification methods](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+- [GitHub: About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- [Sigstore Cosign](https://docs.sigstore.dev/cosign/overview/)
+- [NIST SSDF (PW.4, PS.3)](https://csrc.nist.gov/Projects/ssdf)
 
 ---
 

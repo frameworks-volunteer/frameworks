@@ -29,11 +29,21 @@ operations and security teams.
 
 Some of the key areas to consider are:
 
-1. Integrate security measures early in the development process, such as by utilizing security tools such as fuzzing,
-  static and dynamic analysis tools in your CI/CD process, to identify and mitigate vulnerabilities before they turn into
-  critical issues.
-2. Implement automated security testing and monitoring.
-3. Development, Operations and Security teams should be aligned and work closely together.
+1. Integrate security controls early in the development process (for example SAST, dependency scanning, and reproducible
+  builds).
+2. Implement automated security testing and monitoring across CI/CD.
+3. Align Development, Operations, and Security teams around shared ownership and response playbooks.
+
+## DevSecOps subsections
+
+- [Repository Hardening](/devsecops/repository-hardening): branch/ruleset protections, secret scanning, and access
+  governance.
+- [Code Signing](/devsecops/code-signing): commit/tag verification and artifact provenance.
+- [Integrated Development Environments](/devsecops/integrated-development-environments): secure local environments,
+  extension trust, and credential isolation.
+- [Continuous Integration and Continuous Deployment](/devsecops/continuous-integration-continuous-deployment):
+  least-privilege workflows, pinned actions, and OIDC federation.
+- [Security Testing](/devsecops/security-testing): SAST/DAST/IAST, fuzzing, and remediation pipelines.
 
 ---
 

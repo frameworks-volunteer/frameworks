@@ -17,19 +17,56 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-If a threat actor obtains access to your repository, it could have very severe consequences. In order to help avoid
-this, you could consider implementing the following best practices:
+If a threat actor gains write access to your repository, they can tamper with code, CI, and release pipelines. Treat
+repository settings as high-impact security controls.
 
-1. Require Multi-Factor Authentication (MFA) for all repository members.
-2. Enable protected branches to prevent unauthorized changes to critical branches. [Learn more about protected
-  branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).
-3. Follow the [Security hardening for GitHub
-  Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) to avoid token
-  stealing and other vulnerabilities.
-4. Implement strict access controls to limit who can push to critical branches and repositories.
-5. Conduct regular security audits of the repository to identify and mitigate potential vulnerabilities.
-6. Require all commits to be signed to verify the identity of contributors and ensure the integrity of the code.
-7. Regularly update dependencies and use tools to check for and manage vulnerabilities in dependencies.
+## Recommended controls
+
+1. Require MFA for all organization members and outside collaborators.
+2. Protect critical branches with rulesets (status checks, required reviews, signed commits, and restricted pushes).
+3. Restrict who can edit workflow files and CI secrets.
+4. Enable secret scanning and push protection.
+5. Enforce least-privilege repository roles and review access regularly.
+6. Require signed commits/tags for critical branches and release workflows.
+7. Continuously monitor dependency and supply-chain risk.
+
+## Practical examples
+
+### Example 1: Enforce branch rules for release branches
+
+For `main`, `develop`, and release branches:
+
+- Require pull requests and disallow force pushes.
+- Require status checks (tests, linting, security scans).
+- Require code owner reviews for high-risk paths (for example `.github/workflows/`, `docs/pages/config/`).
+
+### Example 2: Enable push protection for secrets
+
+Turn on secret scanning push protection so contributors are blocked before committing known key patterns.
+
+### Example 3: Lock down Actions and reusable workflows
+
+- Only allow trusted actions (GitHub-owned, verified creators, and allowlisted local actions).
+- Require approval for first-time contributors before workflow execution.
+- Store cloud credentials in protected environments, not repository-level broad secrets.
+
+### Example 4: Review high-risk settings monthly
+
+Use a recurring checklist to verify:
+
+- branch/ruleset protections,
+- repository admin list,
+- Actions permissions,
+- required reviewers for production environments,
+- audit log anomalies.
+
+## References
+
+- [GitHub: About protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
+- [GitHub: About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- [GitHub: Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+- [GitHub: About secret scanning push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection)
+- [OpenSSF Scorecard checks](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
 
 ## Configuration Checklists
 

@@ -17,15 +17,45 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Integrated Development Environments (IDEs) are essential tools for developers, but they also need to be secured.
-Consider implementing the following best practices:
+IDEs are often trusted with source code, credentials, and cloud access. Treat development environments as part of your
+security boundary.
 
-1. Ensure IDEs are configured securely, with plugins and extensions only installed from trusted sources. Some IDEs have
-  features that allow for automated execution of files in folders. Use restricted mode if you don't fully trust a project.
-2. Keep IDEs and their plugins/extensions up-to-date to protect against vulnerabilities.
-3. Integrate static code analysis tools within the IDE to catch security issues early in the development process.
-4. Configure IDEs to follow the principle of least privilege, limiting access to sensitive information and systems.
-5. Ensure that potential development environments are isolated from production environments.
+## Recommended controls
+
+1. Install extensions only from trusted publishers and maintain an internal allowlist.
+2. Keep IDEs/extensions updated and remove abandoned plugins.
+3. Enable restricted/workspace trust mode for untrusted repositories.
+4. Enforce least privilege for local credentials, shells, and integrated terminals.
+5. Isolate development from production with separate accounts, networks, and credentials.
+
+## Practical examples
+
+### Example 1: Use VS Code Workspace Trust for untrusted code
+
+When opening unknown repos, keep **Restricted Mode** enabled until files and extensions are reviewed.
+
+### Example 2: Standardize secure local setups with Dev Containers
+
+Define a hardened `.devcontainer` so developers use the same baseline tooling, linters, and security checks.
+This reduces drift and limits risky host-level customization.
+
+### Example 3: Catch secrets before commit
+
+Run secret scanning locally (for example, `gitleaks` or `trufflehog`) as a pre-commit/pre-push hook so credentials are
+blocked before they reach CI.
+
+### Example 4: Separate developer and production identities
+
+Use non-production cloud accounts for daily development and require privileged access workflows (break-glass + approval)
+for production actions.
+
+## References
+
+- [VS Code: Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust)
+- [VS Code: Extension Runtime Security](https://code.visualstudio.com/docs/configure/extensions/extension-runtime-security)
+- [Dev Containers specification](https://containers.dev/)
+- [GitHub: Secret scanning patterns](https://docs.github.com/en/code-security/secret-scanning/secret-scanning-patterns)
+- [CISA: Secure by Design Alerting and Developer Environment considerations](https://www.cisa.gov/securebydesign)
 
 ---
 
