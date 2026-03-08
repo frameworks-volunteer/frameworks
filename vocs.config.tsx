@@ -305,6 +305,7 @@ const config = {
             { text: 'Integrated Development Environments', link: '/devsecops/integrated-development-environments', dev: true },
             { text: 'Repository Hardening', link: '/devsecops/repository-hardening', dev: true },
             { text: 'Security Testing', link: '/devsecops/security-testing', dev: true },
+            { text: 'Sandboxing and Isolation', link: '/devsecops/sandboxing-and-isolation', dev: true },
           ]
         },
         {

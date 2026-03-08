@@ -25,6 +25,76 @@
     "Whitehat"
   ],
   "pageTagsMap": {
+    "/ai-security/ai-browsers": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy"
+    ],
+    "/ai-security/ai-execution-sandboxing-practical-guide": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops",
+      "SRE"
+    ],
+    "/ai-security/ai-execution-sandboxing": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops"
+    ],
+    "/ai-security/ai-workflows-developers-vs-non-developers": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Community & Marketing"
+    ],
+    "/ai-security/capability-based-isolation-for-ai-agents": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy"
+    ],
+    "/ai-security/data-exfiltration-via-generative-systems": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy"
+    ],
+    "/ai-security/execution-path-enforcement": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops"
+    ],
+    "/ai-security/network-and-resource-isolation-in-ai-sandboxes": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops",
+      "SRE"
+    ],
+    "/ai-security/overview": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops"
+    ],
+    "/ai-security/prompt-injection-defenses": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy"
+    ],
+    "/ai-security/sandboxing-as-a-complement-to-execution-path-enforcement": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops"
+    ],
+    "/ai-security/sandboxing-for-tool-and-execution-calls": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops"
+    ],
     "/awareness/core-awareness-principles": [
       "Security Specialist",
       "Operations & Strategy",
@@ -152,6 +222,13 @@
       "Engineer/Developer",
       "Security Specialist",
       "Devops"
+    ],
+    "/devsecops/sandboxing-and-isolation": [
+      "Engineer/Developer",
+      "Security Specialist",
+      "Operations & Strategy",
+      "Devops",
+      "Cloud"
     ],
     "/devsecops/security-testing": [
       "Engineer/Developer",
@@ -1048,6 +1125,7 @@
     "Identity and Access Management IAM": "iam",
     "Secure Software Development": "secure-software-development",
     "Security Testing": "security-testing",
+    "AI Security": "ai-security",
     "ENS": "ens",
     "Safe Harbor": "safe-harbor",
     "Encryption": "encryption",

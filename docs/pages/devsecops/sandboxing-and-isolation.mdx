@@ -1,0 +1,82 @@
+---
+title: "Sandboxing and Isolation | Security Alliance"
+description: "Reduce blast radius in developer tooling and CI by sandboxing untrusted workloads, isolating runners, limiting network access, and enforcing resource and permission boundaries."
+tags:
+  - Engineer/Developer
+  - Security Specialist
+  - Operations & Strategy
+  - Devops
+  - Cloud
+contributors:
+  - role: adapted
+    users: [munamwasi, jubos, masterfung]
+  - role: reviewed
+    users: [mattaereal]
+---
+
+import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../components'
+
+<TagProvider>
+<TagFilter />
+
+# Sandboxing and Isolation
+
+<TagList tags={frontmatter.tags} />
+<AttributionList contributors={frontmatter.contributors} />
+
+Sandboxing is a practical way to reduce blast radius when running **untrusted or semi-trusted code** in your delivery
+pipeline (CI/CD), developer tooling, and automation.
+
+This content originally appeared in the AI Security section because AI agents frequently execute tools and commands.
+However, the core guidance (isolation, network controls, resource limits, and permission boundaries) is broadly
+applicable to DevSecOps.
+
+## What to sandbox
+
+- **CI jobs** that execute pull request code.
+- **Build steps** that run third-party tooling (formatters, generators, linters, installers).
+- **Preview environments** that run unreviewed code.
+- **Automation** that can trigger side effects (cloud deploys, credentialed API calls).
+
+## Restrict escalation vectors
+
+Effective sandboxing limits the typical escalation paths:
+
+- **Network access**: default-deny egress; allowlist only what is required (package registries, artifact storage).
+- **Time + CPU + memory**: strict limits prevent runaway jobs and some DoS classes.
+- **Filesystem access**: read-only workspaces where possible; mount secrets separately.
+- **Privileges**: no root, no Docker socket exposure, no host filesystem mounts.
+- **Output size**: cap logs and artifacts to reduce exfiltration via build output.
+
+## Recommended approaches
+
+### Isolated runners / ephemeral environments
+
+- Prefer **ephemeral runners** (new VM/container per job) over long-lived shared runners.
+- For higher-risk workloads, use **microVMs** (e.g., Firecracker) or similar hardened isolation.
+
+### Policy checks before side effects
+
+If a job can deploy, mint credentials, change infra, or move funds:
+
+- Require **manual approvals** or protected environments.
+- Use **policy-as-code** to validate what can be executed.
+- Separate "plan" from "apply" with distinct credentials.
+
+### Practical tools/tech
+
+- Firecracker (AWS): microVM isolation for ephemeral, resource-constrained execution
+- E2B: dedicated cloud sandboxes for code execution (useful for highly dynamic workloads)
+- Runtime policy enforcement tools that intercept tool invocations before execution
+
+## Common footguns
+
+- Sharing a single privileged runner across repos/teams.
+- Exposing long-lived cloud credentials to PR builds.
+- Allowing unrestricted egress from build jobs.
+- Letting automation chain actions without checkpoints.
+
+---
+
+</TagProvider>
+<ContributeFooter />
