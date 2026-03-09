@@ -1,6 +1,6 @@
 ---
 title: "Multi-Factor Authentication | Security Alliance"
-description: "2FA/MFA framework for Web3 teams: secure factor selection, anti-SIM-swap guidance, recovery design, and cross-framework implementation patterns."
+description: "2FA/MFA framework for Web3 teams: factor hierarchy, operational failure modes, recovery design, and incident response for high-impact accounts."
 tags:
   - Security Specialist
   - Operations & Strategy
@@ -24,66 +24,182 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 
 ## Summary
 
-> 🔐 **Key takeaway:** treat MFA as a core control for every critical account. Prefer phishing-resistant methods
-> (passkeys/security keys), avoid SMS whenever possible, and design recovery before incidents happen.
+> 🔐 **Key takeaway:** MFA only helps when method strength, recovery controls, and incident response are designed together.
+> For critical accounts, default to phishing-resistant authentication: **FIDO2/passkeys/security keys > TOTP > push > SMS**.
 
-This framework centralizes guidance that often appears scattered across platform-specific sections (Discord, Telegram,
+This framework centralizes guidance that often appears scattered across platform-specific pages (Discord, Telegram,
 X/Twitter, Google, travel OPSEC, and SIM-swap defense). Use this as your baseline policy, then adapt per platform.
 
 ## Why this matters
 
 Account takeover remains one of the highest-impact and most common attack paths in Web3 operations. MFA reduces risk,
-but only when implemented correctly:
+but only when implemented as an **operational system**, not a one-time setting:
 
 - weak factors (especially SMS) can still be hijacked
-- poor recovery paths can bypass strong MFA
-- partial rollout (admins only, no comms accounts) leaves critical gaps
+- recovery flows can silently bypass strong MFA
+- partial rollout (admins only, no comms/ops accounts) leaves critical gaps
+- untested break-glass access can fail during incidents
 
-## Factor Strength and Selection
+## Method hierarchy (default policy)
 
-Use the strongest method each platform supports:
+Use the strongest factor each platform supports:
 
-1. **Passkeys / security keys (FIDO2/WebAuthn)** — preferred when available
-2. **Hardware-backed TOTP setup** (or authenticator app with strong device security)
-3. **Push-based MFA** (with number matching and anti-prompt-spam controls)
-4. **SMS/voice OTP** — fallback only when no better option exists
+1. **FIDO2 / passkeys / security keys** (WebAuthn, hardware-backed) — default for critical accounts
+2. **TOTP** (authenticator app or hardware token) — acceptable fallback where FIDO2 is unavailable
+3. **Push MFA** — acceptable only with number matching and anti-fatigue controls
+4. **SMS/voice OTP** — emergency fallback only; avoid for critical systems
+
+### Enforcement by account tier
+
+- **Tier 0 (critical):** treasury, multisig signers, exchange admins, DNS/registrar, identity provider, production cloud
+  control plane
+  - must use FIDO2/security keys when supported
+  - SMS prohibited unless platform is SMS-only (requires documented exception)
+- **Tier 1 (high):** comms/admin accounts, CI/CD maintainers, GitHub org admins
+  - FIDO2 preferred, TOTP allowed
+  - push allowed only with anti-fatigue settings
+- **Tier 2 (standard):** lower-impact internal tools
+  - at minimum TOTP
+  - SMS discouraged and tracked as technical debt
 
 ### Baseline rules
 
-- Disable SMS 2FA whenever an app-based or hardware method exists
-- Store backup codes offline (not only in cloud notes)
-- Keep at least one backup factor per critical account
-- Separate password storage from OTP generation when possible
-- Protect the email account used for account recovery with strong MFA too
+- Disable SMS/voice MFA whenever a stronger method exists
+- Enroll at least **two factors** for every critical account (primary + backup)
+- Store recovery codes offline in controlled storage (not only cloud notes)
+- Protect password manager and account-recovery email with strong MFA
+- Separate where possible: password storage, OTP generation, and high-risk admin sessions
 
-## Scope: where MFA must be mandatory
+## Operational failure modes and mitigations
 
-MFA should be required for:
+### 1) SIM swap / phone-number takeover
 
-- core communication channels (Discord, Telegram, X/Twitter)
-- admin and moderation accounts
-- email and identity providers (Google Workspace/SSO)
-- code and infrastructure control planes (GitHub, cloud, DNS, CI/CD)
-- treasury, multisig, and operational finance systems
+**Failure mode:** attacker ports a number, intercepts SMS OTP and account reset flows.
 
-## Implementation model (team level)
+**Mitigations:**
 
-1. **Inventory accounts** and classify by impact (critical/high/normal)
-2. **Set allowed methods** by risk tier (e.g., no SMS for critical)
-3. **Enroll owners + backups** for each critical account
-4. **Test recovery flows** in tabletop exercises
-5. **Review quarterly** (factor drift, lost devices, stale admins)
+- do not rely on SMS for critical accounts
+- remove recovery phone numbers where not required
+- enable carrier-level port-out PIN and no-port flags
+- protect email and IdP accounts with FIDO2 (to prevent reset-chain compromise)
 
-See the practical checklist at [MFA implementation checklist](/opsec/mfa/implementation-checklist).
+**Response trigger:** unexpected carrier loss of service, new-device alerts, or password-reset emails.
 
-## Recovery and anti-lockout design
+### 2) MFA fatigue (push bombing)
 
-Strong MFA without a recovery plan can stop your own operations.
+**Failure mode:** repeated push prompts pressure users into accidental approval.
 
-- Keep emergency recovery procedures documented and access-controlled
-- Use break-glass accounts with stricter monitoring and limited use
-- Track revoked/lost devices and rotate factors immediately
-- Avoid single-person dependency for critical account recovery
+**Mitigations:**
+
+- require number matching / challenge codes for push MFA
+- disable "approve/deny"-only prompts where possible
+- train staff to treat unsolicited prompts as incidents
+- throttle/lock accounts after repeated prompt abuse
+
+**Response trigger:** repeated MFA prompts without user action.
+
+### 3) TOTP seed theft / secret extraction
+
+**Failure mode:** attacker steals OTP seed (QR/export/backup), then generates valid codes.
+
+**Mitigations:**
+
+- enroll TOTP only on hardened dedicated devices
+- disallow screenshots or cloud sync of seed QR/secrets
+- avoid storing signer seed phrases and OTP seeds on the same device/account
+- rotate TOTP secrets after suspected malware or device compromise
+
+**Response trigger:** unexplained successful MFA logins from unfamiliar devices/IPs.
+
+### 4) Shared devices / role accounts
+
+**Failure mode:** one enrolled factor is shared across multiple people, removing accountability and revocation clarity.
+
+**Mitigations:**
+
+- no shared authenticator apps for critical accounts
+- map every enrolled factor to an individual person and asset ID
+- use delegated access or role-based admin controls instead of credential sharing
+- review factor ownership quarterly
+
+**Response trigger:** inability to identify which person approved a login or factor change.
+
+### 5) Lost, stolen, or unavailable phone/key
+
+**Failure mode:** legitimate operator is locked out, or attacker uses stolen backup artifacts.
+
+**Mitigations:**
+
+- maintain at least one independent backup factor per critical account
+- store backup codes in offline controlled vaults
+- test recovery paths in drills (not only in theory)
+- rotate all factors immediately after confirmed loss/theft
+
+**Response trigger:** user lockout during incident response or travel.
+
+## Organizational process requirements
+
+### Enrollment standard
+
+- identity-verify each person before enrolling factors
+- enroll factors during controlled onboarding sessions
+- record factor type, owner, device ID, and recovery location
+- enforce minimum methods by tier (no ad hoc per-user choices)
+
+### Backup and recovery standard
+
+- define who can approve recovery and under what evidence
+- require dual control for critical recovery actions
+- maintain offline recovery artifacts with documented access controls
+- test recovery at least quarterly and after major platform changes
+
+### Offboarding standard (joiner/mover/leaver)
+
+- revoke all factors and active sessions immediately when roles change
+- remove old devices and stale backup factors
+- rotate recovery codes after privileged departures
+- validate ownership for service/admin accounts after offboarding
+
+### Break-glass access
+
+- keep dedicated emergency accounts with stronger-than-normal controls
+- store credentials and recovery factors in sealed, logged, access-controlled workflows
+- require post-incident credential/factor rotation after any break-glass use
+- alert security leadership on every break-glass event
+
+### Incident response when MFA is compromised
+
+When compromise is suspected or confirmed:
+
+1. **Contain:** revoke active sessions, freeze sensitive actions, lock impacted accounts
+2. **Recover control:** reset passwords, rotate/re-enroll all MFA factors, invalidate recovery codes
+3. **Scope impact:** review audit logs (factor changes, device enrollments, password resets)
+4. **Protect adjacent systems:** rotate API keys/tokens, check email/IdP and admin panel access
+5. **Communicate:** notify internal responders and affected partners/users as needed
+6. **Harden:** document root cause and close policy/process gaps
+
+## Web3-specific implementation notes
+
+### Multisig signers and governance operators
+
+- signer identities should use dedicated hardware and isolated accounts
+- signer comms accounts (Telegram/Discord/X/email) must meet Tier 0/1 MFA policy
+- treat signer-role changes as high-priority offboarding/onboarding events
+- never co-locate signer seed phrase handling and MFA recovery artifacts on one device
+
+### Exchange and custody accounts
+
+- require hardware-backed MFA for withdrawal/admin roles
+- enforce allowlists, withdrawal delays, and approval separation in addition to MFA
+- monitor for MFA resets, new API keys, and withdrawal policy changes
+- predefine emergency exchange freeze/escalation contacts
+
+### Admin panels, deploy pipelines, and registrars
+
+- enforce MFA on cloud consoles, DNS registrar, CI/CD, GitHub org owners, and incident tooling
+- pair MFA with SSO/IdP conditional access where available
+- alert on new factor enrollment and recovery events for privileged roles
+- include these systems in quarterly access and factor reviews
 
 ## Transversal mapping
 
@@ -99,13 +215,14 @@ This framework connects directly with other areas:
 
 ## Minimum operating standard
 
-At a minimum, teams should enforce:
+At minimum, teams should enforce:
 
 - MFA on every critical account
-- no SMS for critical accounts unless technically unavoidable
-- documented recovery with offline backup codes
-- quarterly ownership and method review
-- incident playbook for suspected account compromise
+- hierarchy policy: **FIDO2/passkeys/security keys > TOTP > push > SMS**
+- no SMS for critical accounts unless technically unavoidable and documented
+- documented enrollment, offboarding, recovery, and break-glass procedures
+- quarterly ownership and factor review
+- incident playbook for suspected MFA compromise, tested via drills
 
 ---
 

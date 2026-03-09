@@ -1,9 +1,14 @@
 ---
 title: "MFA Implementation Checklist | Security Alliance"
-description: "Actionable 2FA/MFA rollout checklist for Web3 teams: inventory, enrollment, recovery, monitoring, and periodic validation."
+description: "Actionable MFA rollout checklist for Web3 teams: method hierarchy, failure-mode controls, recovery, offboarding, break-glass, and incident response."
 tags:
   - Security Specialist
   - Operations & Strategy
+contributors:
+  - role: wrote
+    users: [mattaereal]
+  - role: reviewed
+    users: []
 ---
 
 import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../components'
@@ -18,48 +23,144 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 
 Use this checklist to operationalize the [MFA framework](/opsec/mfa/overview).
 
-## 1) Inventory and classification
+## 1) Scope, inventory, and account tiers
 
-- [ ] Build a complete list of accounts and services
-- [ ] Mark **critical** accounts (admin, treasury, infra, communications)
-- [ ] Assign accountable owners for each account
-- [ ] Define approved MFA methods by risk tier
+- [ ] Build and maintain a complete inventory of accounts/services
+- [ ] Classify accounts by impact (Tier 0 critical / Tier 1 high / Tier 2 standard)
+- [ ] Mark critical systems explicitly (treasury, multisig, exchange admin, DNS, IdP, cloud)
+- [ ] Assign accountable owner(s) and backup owner(s) for each critical account
+- [ ] Record platform MFA capabilities and constraints per account
 
-## 2) Enrollment standards
+## 2) Method hierarchy and policy enforcement
 
-- [ ] Enforce MFA for all critical accounts
-- [ ] Prefer passkeys/security keys for high-impact accounts
-- [ ] Disable SMS/voice OTP where alternatives exist
-- [ ] Register at least one backup factor for each critical account
-- [ ] Store backup codes offline in a controlled location
+- [ ] Document and enforce method hierarchy: **FIDO2/passkeys/security keys > TOTP > push > SMS**
+- [ ] Require FIDO2/security keys for Tier 0 accounts where supported
+- [ ] Disable SMS/voice OTP when stronger methods are available
+- [ ] Track SMS-only exceptions with owner, reason, review date, and compensating controls
+- [ ] Require at least two enrolled factors for every critical account
 
-## 3) Recovery and continuity
+## 3) Enrollment standard (joiner process)
 
-- [ ] Document account recovery workflows
-- [ ] Create break-glass procedures with strict usage logging
-- [ ] Require dual control for sensitive recovery actions
-- [ ] Test lockout recovery on a regular cadence
-- [ ] Rotate factors immediately after device loss/theft
+- [ ] Verify operator identity before MFA enrollment
+- [ ] Enroll factors in a controlled process (not ad hoc/self-service for critical roles)
+- [ ] Capture factor metadata (type, owner, device/asset ID, enrollment date)
+- [ ] Store backup codes in approved offline location(s)
+- [ ] Confirm login success and recovery flow during onboarding
 
-## 4) Monitoring and incident response
+## 4) Recovery, continuity, and backup controls
 
-- [ ] Enable login and factor-change alerts
-- [ ] Alert on new device enrollments and recovery events
-- [ ] Add MFA-bypass and SIM-swap scenarios to incident runbooks
-- [ ] Define emergency actions (session revocation, credential reset, comms freeze)
+- [ ] Document account-specific recovery workflows and approvers
+- [ ] Require dual control for Tier 0 recovery actions
+- [ ] Maintain offline backups for recovery codes/sealed credentials
+- [ ] Define lockout procedures for travel/device failure scenarios
+- [ ] Test recovery at least quarterly and after major platform changes
 
-## 5) Governance and periodic review
+## 5) Failure-mode controls (must-have mitigations)
 
-- [ ] Quarterly review of enrolled factors and account owners
-- [ ] Remove stale users, old devices, and deprecated methods
-- [ ] Re-validate platform settings after major product/UI changes
-- [ ] Track exceptions (e.g., SMS-only systems) with compensating controls
+### SIM swap
 
-## Platform notes
+- [ ] Remove phone numbers from recovery flows where possible
+- [ ] Configure carrier protections (port-out PIN / no-port)
+- [ ] Monitor for unexpected carrier service loss and reset alerts
+- [ ] Predefine immediate response actions for suspected SIM swap
 
-- Community channels: apply this checklist to [Discord](/community-management/discord), [Telegram](/community-management/telegram), and [X/Twitter](/community-management/twitter)
-- Identity provider: enforce baseline controls in [Google Security](/opsec/google/overview)
-- Threat model reference: [SIM Swapping](/opsec/old/digital-identity-access/sim-swapping)
+### MFA fatigue (push bombing)
+
+- [ ] Enable number matching/challenge-based push MFA
+- [ ] Disable low-assurance push approval modes where possible
+- [ ] Train users to report unsolicited prompts as incidents
+- [ ] Alert on repeated denied or spammed push prompts
+
+### TOTP seed theft
+
+- [ ] Prohibit screenshots/export/sharing of TOTP seed QR/secrets
+- [ ] Enroll TOTP only on managed/hardened devices for critical roles
+- [ ] Separate OTP device/account from high-value signing seed operations
+- [ ] Rotate TOTP seeds after malware suspicion or device compromise
+
+### Shared devices / shared factors
+
+- [ ] Prohibit shared authenticator factors for critical accounts
+- [ ] Map each factor to one named individual
+- [ ] Replace shared credentials with delegated or role-based access
+- [ ] Validate accountability in quarterly reviews
+
+### Lost phone/security key
+
+- [ ] Keep at least one independent backup factor per critical account
+- [ ] Document emergency lockout and re-enrollment steps
+- [ ] Revoke and rotate factors immediately after confirmed loss/theft
+- [ ] Verify recovery does not downgrade to weak methods
+
+## 6) Offboarding and role changes (mover/leaver process)
+
+- [ ] Revoke all active sessions for departing/changing personnel
+- [ ] Remove enrolled MFA factors and trusted devices immediately
+- [ ] Rotate recovery codes and backup credentials for shared/role accounts
+- [ ] Reassign ownership and verify backup owner coverage
+- [ ] Log completion evidence for each offboarding event
+
+## 7) Break-glass account governance
+
+- [ ] Maintain dedicated break-glass accounts for critical systems
+- [ ] Protect break-glass credentials/factors with sealed, logged access workflow
+- [ ] Require multi-person approval before break-glass activation
+- [ ] Alert security leadership for every break-glass use
+- [ ] Rotate all break-glass credentials and factors after each use
+
+## 8) Monitoring and detection
+
+- [ ] Enable alerts for login anomalies, new device enrollments, and factor changes
+- [ ] Alert on password resets, recovery attempts, and MFA method downgrades
+- [ ] Forward high-risk auth logs to centralized monitoring/SIEM
+- [ ] Define escalation thresholds and on-call ownership
+- [ ] Store audit evidence needed for investigations
+
+## 9) Incident response when MFA is compromised
+
+- [ ] Maintain a playbook for suspected MFA bypass/compromise
+- [ ] Include immediate containment steps (session revocation, account freeze)
+- [ ] Include full factor reset steps (password + MFA + recovery code rotation)
+- [ ] Include adjacent-system checks (email/IdP/API keys/admin panels)
+- [ ] Define internal/external communication and postmortem ownership
+
+## 10) Web3-specific controls
+
+### Multisig signers and governance operators
+
+- [ ] Enforce strong MFA on signer communication and coordination accounts
+- [ ] Treat signer onboarding/offboarding as Tier 0 identity events
+- [ ] Validate emergency contacts/channels for signer incident response
+- [ ] Ensure signer key-management devices are separated from MFA recovery artifacts
+
+### Exchange/custody and treasury operations
+
+- [ ] Require hardware-backed MFA for withdrawal/admin roles
+- [ ] Monitor for MFA resets, withdrawal-policy changes, and new API keys
+- [ ] Enforce withdrawal allowlists/delays alongside MFA
+- [ ] Keep tested emergency freeze/escalation procedures with providers
+
+### Admin panels and infrastructure control plane
+
+- [ ] Enforce MFA for cloud, DNS/registrar, CI/CD, GitHub org owners, and incident tooling
+- [ ] Require strong MFA on IdP/SSO super-admin accounts
+- [ ] Verify no privileged system remains SMS-only without compensating controls
+- [ ] Test access continuity during outage and credential-loss scenarios
+
+## 11) Governance and review cadence
+
+- [ ] Conduct quarterly review of account owners, factors, and exceptions
+- [ ] Remove stale users/devices and deprecated methods
+- [ ] Re-validate MFA settings after major UI/platform changes
+- [ ] Run at least one tabletop exercise for MFA compromise per quarter
+- [ ] Keep signed records of reviews, exceptions, and remediation actions
+
+## Related references
+
+- [Multi-Factor Authentication (Overview)](/opsec/mfa/overview)
+- [Community Management Overview](/community-management/overview)
+- [Google Security Overview](/opsec/google/overview)
+- [SIM Swapping (legacy reference)](/opsec/old/digital-identity-access/sim-swapping)
 
 ---
 
