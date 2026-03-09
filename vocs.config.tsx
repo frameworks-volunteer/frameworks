@@ -84,7 +84,14 @@ const config = {
             },
             { text: 'Endpoint Security', link: '/opsec/endpoint/overview', dev: true },
             { text: 'Browser Security', link: '/opsec/browser/overview', dev: true },
-            { text: 'Multi-Factor Authentication', link: '/opsec/mfa/overview', dev: true },
+            {
+              text: 'Multi-Factor Authentication',
+              collapsed: false,
+              items: [
+                { text: 'Overview', link: '/opsec/mfa/overview', dev: true },
+                { text: 'Implementation Checklist', link: '/opsec/mfa/implementation-checklist', dev: true },
+              ]
+            },
             { text: 'Password Management', link: '/opsec/passwords/overview', dev: true },
             { text: 'Google Workspace Security', link: '/opsec/google/overview', dev: true },
             { text: 'Control Domains', link: '/opsec/control-domains/overview', dev: true },

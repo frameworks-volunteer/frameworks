@@ -1,0 +1,67 @@
+---
+title: "MFA Implementation Checklist | Security Alliance"
+description: "Actionable 2FA/MFA rollout checklist for Web3 teams: inventory, enrollment, recovery, monitoring, and periodic validation."
+tags:
+  - Security Specialist
+  - Operations & Strategy
+---
+
+import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../components'
+
+<TagProvider>
+<TagFilter />
+
+# MFA Implementation Checklist
+
+<TagList tags={frontmatter.tags} />
+<AttributionList contributors={frontmatter.contributors} />
+
+Use this checklist to operationalize the [MFA framework](/opsec/mfa/overview).
+
+## 1) Inventory and classification
+
+- [ ] Build a complete list of accounts and services
+- [ ] Mark **critical** accounts (admin, treasury, infra, communications)
+- [ ] Assign accountable owners for each account
+- [ ] Define approved MFA methods by risk tier
+
+## 2) Enrollment standards
+
+- [ ] Enforce MFA for all critical accounts
+- [ ] Prefer passkeys/security keys for high-impact accounts
+- [ ] Disable SMS/voice OTP where alternatives exist
+- [ ] Register at least one backup factor for each critical account
+- [ ] Store backup codes offline in a controlled location
+
+## 3) Recovery and continuity
+
+- [ ] Document account recovery workflows
+- [ ] Create break-glass procedures with strict usage logging
+- [ ] Require dual control for sensitive recovery actions
+- [ ] Test lockout recovery on a regular cadence
+- [ ] Rotate factors immediately after device loss/theft
+
+## 4) Monitoring and incident response
+
+- [ ] Enable login and factor-change alerts
+- [ ] Alert on new device enrollments and recovery events
+- [ ] Add MFA-bypass and SIM-swap scenarios to incident runbooks
+- [ ] Define emergency actions (session revocation, credential reset, comms freeze)
+
+## 5) Governance and periodic review
+
+- [ ] Quarterly review of enrolled factors and account owners
+- [ ] Remove stale users, old devices, and deprecated methods
+- [ ] Re-validate platform settings after major product/UI changes
+- [ ] Track exceptions (e.g., SMS-only systems) with compensating controls
+
+## Platform notes
+
+- Community channels: apply this checklist to [Discord](/community-management/discord), [Telegram](/community-management/telegram), and [X/Twitter](/community-management/twitter)
+- Identity provider: enforce baseline controls in [Google Security](/opsec/google/overview)
+- Threat model reference: [SIM Swapping](/opsec/old/digital-identity-access/sim-swapping)
+
+---
+
+</TagProvider>
+<ContributeFooter />

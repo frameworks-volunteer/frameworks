@@ -1,8 +1,15 @@
 ---
 title: "Multi-Factor Authentication | Security Alliance"
+description: "2FA/MFA framework for Web3 teams: secure factor selection, anti-SIM-swap guidance, recovery design, and cross-framework implementation patterns."
 tags:
   - Security Specialist
   - Operations & Strategy
+  - Community & Marketing
+contributors:
+  - role: wrote
+    users: [mattaereal]
+  - role: reviewed
+    users: []
 ---
 
 import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } from '../../../../components'
@@ -10,12 +17,97 @@ import { TagList, AttributionList, TagProvider, TagFilter, ContributeFooter } fr
 <TagProvider>
 <TagFilter />
 
-# Multi-Factor Authentication
+# Multi-Factor Authentication (MFA / 2FA)
 
 <TagList tags={frontmatter.tags} />
 <AttributionList contributors={frontmatter.contributors} />
 
-Placeholder for Multi-Factor Authentication content
+## Summary
+
+> 🔐 **Key takeaway:** treat MFA as a core control for every critical account. Prefer phishing-resistant methods
+> (passkeys/security keys), avoid SMS whenever possible, and design recovery before incidents happen.
+
+This framework centralizes guidance that often appears scattered across platform-specific sections (Discord, Telegram,
+X/Twitter, Google, travel OPSEC, and SIM-swap defense). Use this as your baseline policy, then adapt per platform.
+
+## Why this matters
+
+Account takeover remains one of the highest-impact and most common attack paths in Web3 operations. MFA reduces risk,
+but only when implemented correctly:
+
+- weak factors (especially SMS) can still be hijacked
+- poor recovery paths can bypass strong MFA
+- partial rollout (admins only, no comms accounts) leaves critical gaps
+
+## Factor Strength and Selection
+
+Use the strongest method each platform supports:
+
+1. **Passkeys / security keys (FIDO2/WebAuthn)** — preferred when available
+2. **Hardware-backed TOTP setup** (or authenticator app with strong device security)
+3. **Push-based MFA** (with number matching and anti-prompt-spam controls)
+4. **SMS/voice OTP** — fallback only when no better option exists
+
+### Baseline rules
+
+- Disable SMS 2FA whenever an app-based or hardware method exists
+- Store backup codes offline (not only in cloud notes)
+- Keep at least one backup factor per critical account
+- Separate password storage from OTP generation when possible
+- Protect the email account used for account recovery with strong MFA too
+
+## Scope: where MFA must be mandatory
+
+MFA should be required for:
+
+- core communication channels (Discord, Telegram, X/Twitter)
+- admin and moderation accounts
+- email and identity providers (Google Workspace/SSO)
+- code and infrastructure control planes (GitHub, cloud, DNS, CI/CD)
+- treasury, multisig, and operational finance systems
+
+## Implementation model (team level)
+
+1. **Inventory accounts** and classify by impact (critical/high/normal)
+2. **Set allowed methods** by risk tier (e.g., no SMS for critical)
+3. **Enroll owners + backups** for each critical account
+4. **Test recovery flows** in tabletop exercises
+5. **Review quarterly** (factor drift, lost devices, stale admins)
+
+See the practical checklist at [MFA implementation checklist](/opsec/mfa/implementation-checklist).
+
+## Recovery and anti-lockout design
+
+Strong MFA without a recovery plan can stop your own operations.
+
+- Keep emergency recovery procedures documented and access-controlled
+- Use break-glass accounts with stricter monitoring and limited use
+- Track revoked/lost devices and rotate factors immediately
+- Avoid single-person dependency for critical account recovery
+
+## Transversal mapping
+
+This framework connects directly with other areas:
+
+- [Community Management Overview](/community-management/overview) — moderation/admin account hardening
+- [Telegram Security](/community-management/telegram) — SIM-swap and account takeover controls
+- [X / Twitter Security](/community-management/twitter) — phone-number exposure and account reset risk
+- [Discord Security](/community-management/discord) — admin-role protection and anti-phishing practices
+- [Google Security](/opsec/google/overview) — identity provider baseline and enterprise controls
+- [Travel Security Guide](/opsec/travel/guide) — maintaining MFA access while traveling
+- [SIM Swapping (legacy reference)](/opsec/old/digital-identity-access/sim-swapping) — threat details and mitigations
+
+## Minimum operating standard
+
+At a minimum, teams should enforce:
+
+- MFA on every critical account
+- no SMS for critical accounts unless technically unavoidable
+- documented recovery with offline backup codes
+- quarterly ownership and method review
+- incident playbook for suspected account compromise
+
+---
 
 </TagProvider>
 <ContributeFooter />
