@@ -1,1 +1,34 @@
 # Two-factor & hardware authentication
+
+Strong authentication is the fastest way to reduce account takeover risk in high-impact operations.
+
+## Prioritize phishing-resistant MFA
+
+1. Prefer hardware security keys (FIDO2/WebAuthn) for all admin, treasury, exchange, registrar, and email accounts.
+2. Use authenticator apps only when security keys are unavailable.
+3. Avoid SMS-based verification on critical accounts because phone-number takeover (SIM swap) can bypass it.
+4. Remove SMS fallback where possible.
+
+## SIM-swapping risk controls
+
+SIM swapping happens when an attacker convinces or coerces a carrier into transferring your phone number to a SIM they control.
+
+### What to do now
+
+1. Audit your highest-value accounts and disable SMS 2FA.
+2. Move recovery and MFA methods to security keys and authenticator apps.
+3. Use unique passwords and passkeys where supported.
+4. Harden your email account first (it is often the root of account recovery).
+
+### Carrier-side protections
+
+1. Enable carrier account locks, PINs, and “no-port/no-SIM-change without in-person verification” options.
+2. Request internal notes requiring extra verification before account changes.
+3. Monitor for unexpected loss of service (a common SIM-swap signal) and have an emergency response path.
+
+## Operational practices
+
+1. Keep at least two security keys enrolled per critical service.
+2. Store backup factors offline in a controlled location.
+3. Review active sessions and account recovery settings on a regular cadence.
+4. Test account-recovery paths quarterly so emergency actions are predictable.

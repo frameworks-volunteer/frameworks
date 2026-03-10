@@ -1,1 +1,34 @@
 # Device hardening
+
+Device security should be standardized to reduce drift and make compromise easier to detect.
+
+## Standard operating environment (SOE)
+
+1. Use managed baselines for laptops and mobile devices.
+2. Enforce full-disk encryption on all work devices.
+3. Apply OS and application updates automatically.
+4. Disable unnecessary software and services.
+
+## Endpoint controls
+
+1. Use non-admin accounts for daily work.
+2. Require screen lock and short idle timeout.
+3. Disable risky defaults (for example, Office macros where not strictly required).
+4. Deploy endpoint protection where relevant and keep signatures/models updated.
+5. Keep browser and extensions minimal and reviewed.
+
+## Access & identity protections
+
+1. Enforce least privilege and role-based access controls.
+2. Require MFA for sensitive systems and admin actions.
+3. Review privileges and local admin grants periodically.
+
+## Data handling
+
+1. Protect sensitive data at rest and in transit.
+2. Back up critical data and test restore procedures.
+3. Classify data and apply handling requirements by sensitivity.
+
+## Incident mindset
+
+If device physical custody is lost (or integrity is uncertain), treat it as potentially compromised and follow incident response procedures.

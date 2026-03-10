@@ -1,1 +1,31 @@
 # Network & communication security
+
+Secure communication depends on both transport controls and user behavior.
+
+## Wireless network security baseline
+
+1. Use WPA3 when available (or WPA2-AES as minimum fallback).
+2. Change default router credentials and keep firmware updated.
+3. Segment work devices from IoT/guest devices (separate SSIDs/VLANs).
+4. Isolate guest access to internet-only whenever possible.
+5. Disable unnecessary wireless features and monitor for rogue devices/access points.
+
+## Remote and untrusted networks
+
+1. Use trusted VPN paths for sensitive operations.
+2. Avoid high-impact actions on unknown/public networks.
+3. Disable unused radios (Bluetooth/Wi-Fi) when not needed.
+
+## Secure messaging hygiene
+
+1. Use end-to-end encrypted channels for sensitive discussions.
+2. Enable strong account protections on messaging platforms (passcode lock, MFA where available, session review).
+3. Treat links, files, bots, and “urgent requests” as potential social engineering vectors.
+4. Keep messaging clients updated and prefer official clients.
+
+## Telegram-specific minimum controls
+
+1. Enable two-step verification.
+2. Review and terminate unknown active sessions.
+3. Restrict who can add you to groups and view profile activity.
+4. Disable automatic media download for high-risk accounts.
