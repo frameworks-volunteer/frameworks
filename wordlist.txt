@@ -1,6 +1,7 @@
 AccuKnox
 Acuvity
 Aderyn
+AADAPT
 adraffy
 Adversa
 agentic
@@ -58,6 +59,7 @@ cybercriminals
 Cyberhaven
 Cybrary
 Cyfrin
+CCSS
 Cypherock
 dapp
 Darknet
@@ -101,6 +103,7 @@ equifax's
 Eramba
 erc
 Ethlint
+EthTrust
 Excalidraw
 exfiltrated
 Exfiltrating
@@ -271,6 +274,7 @@ sambacha
 satisfiable
 SBLWT
 Schneier
+SCWE
 SDLC
 SED
 SEDs
